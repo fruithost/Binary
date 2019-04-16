@@ -1,0 +1,1 @@
+php -q /etc/fruithost/bin/cli.php "$@"
