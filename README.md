@@ -1,6 +1,15 @@
 # Binary
 Binary backend for fruithost
 
+## Troubleshooting
+If the binary not callable, you must manual add the script to the global scope:
+
+> ln -s /etc/fruithost/bin/fruithost.sh /usr/local/bin/fruithost
+
+If you have permission problems, update the changemod properies:
+
+> chmod 0777 /etc/fruithost/bin/fruithost.sh
+
 ## Available Commands
 All commands will be inserted as `fruithost <command> <arg1> <arg2> <arg...>`.
 
