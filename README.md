@@ -44,7 +44,7 @@ All commands will be inserted as `fruithost <command> <arg1> <arg2> <arg...>`.
     <tr>
       <td><code>fruithost</code></td>
       <td colspan="3"><code>status</code></td>
-      <td>Show teh status of your system</td>
+      <td>Show the status of your system</td>
     </tr>
     <tr>
       <td><code>fruithost</code></td>
@@ -112,6 +112,9 @@ All commands will be inserted as `fruithost <command> <arg1> <arg2> <arg...>`.
       <td><code>disable</code></td>
       <td colspan="2"><code>&lt;module&gt;</code></td>
       <td>Disable the given module</td>
+    </tr>
+    <tr>
+      <td colspan="5"></td>  
     </tr>
     <tr>
       <th colspan="5">:octocat: Repositorys</th>  
