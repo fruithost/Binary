@@ -15,11 +15,95 @@
 	define('DS', DIRECTORY_SEPARATOR);
 	
 	function help() {
-		print "Help..." . PHP_EOL;
+		color('yellow', 'Usage:');
+		color(null, 'fruithost', false);
+		color('green', ' <command>', false);
+		color('yellow', ' <args...>');
+		
+		line();
+		color('yellow', 'Commands:');
+		
+		line();
+		color('grey', '═ Globals ═');
+		
+		color('green', 'version', false);
+		color(null, ' - List the version informations');
+		
+		color('green', 'help', false);
+		color(null, ' - Print the help');
+		
+		color('green', 'status', false);
+		color(null, ' - Show teh status of your system');
+		
+		color('green', 'statistics', false);
+		color(null, ' - Show some statistics');
+		
+		color('green', 'daemon', false);
+		color(null, ' - Run the daemon process');
+		
+		line();
+		color('grey', '═ Updates & Upgrades ═');
+		
+		color('green', 'upgrade');
+		color('grey', '  ├ ', false);
+		color('yellow', 'core', false);
+		color(null, ' - Upgrade the core files');
+		color('grey', '  └ ', false);
+		color('yellow', '<module>', false);
+		color(null, ' - Upgrade the given module name');
+		
+		color('green', 'update', false);
+		color(null, ' - Check for updates');
+		
+		line();
+		color('grey', '═ Modules ═');
+		
+		color('green', 'remove ', false);
+		color('yellow', '<module>', false);
+		color(null, ' - Delete / Deinstall given module');
+		
+		color('green', 'install ', false);
+		color('yellow', '<module>', false);
+		color(null, ' - Install given module');
+		
+		color('green', 'enable ', false);
+		color('yellow', '<module>', false);
+		color(null, ' - Enable the given module');
+		
+		color('green', 'disable ', false);
+		color('yellow', '<module>', false);
+		color(null, ' - Disable the given module');
+		
+		line();
+		color('grey', '═ Repositorys ═');
+		
+		color('green', 'repository');
+		color('grey', '  ├ ', false);
+		color('yellow', 'add', false);
+		color('blue', ' <url>', false);
+		color(null, ' - Add a repository URL');
+		color('grey', '  ├ ', false);
+		color('yellow', 'remove', false);
+		color('blue', ' <url>', false);
+		color(null, ' - Remove a repository URL');
+		color('grey', '  └ ', false);
+		color('yellow', 'list', false);
+		color(null, ' - List all registred repositorys');
 	}
 	
 	function version() {
-		print 'fruithost Version ' . file_get_contents(sprintf('%s%s%s%s%s', dirname(PATH), DS, 'panel', DS, '.version')) . PHP_EOL;
+		$version = (object) [
+			'panel'		=> file_get_contents(sprintf('%s%s%s%s%s', dirname(PATH), DS, 'panel', DS, '.version')),
+			'binary'	=> file_get_contents(sprintf('%s%s%s%s%s', dirname(PATH), DS, 'bin', DS, '.version'))
+		];
+		
+		color('yellow', 'fruithost', false);
+		color(null, ' | The OpenSource Hosting Panel');
+		
+		color(null, TAB . 'Binary version ', false);
+		color('green', $version->binary, false);
+		color(null, ', Panel version ', false);
+		color('green', $version->panel);
 	}
 	
 	function line() {
@@ -35,7 +119,7 @@
 				$color = "\033[0;32m";
 			break;
 			case 'blue';
-				$color = "\033[34m";
+				$color = "\033[1;34m";
 			break;
 			case 'red';
 				$color = "\033[31;31m";
