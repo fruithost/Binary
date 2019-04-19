@@ -1,5 +1,7 @@
 # Binary
-Binary backend for fruithost
+CLI / Shell backend for fruithost
+
+![Help](https://raw.githubusercontent.com/fruithost/Binary/master/screenshots/help.png)
 
 ## Troubleshooting
 If the binary not callable, you must manual add the script to the global scope:
