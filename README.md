@@ -5,7 +5,7 @@ Binary backend for fruithost
 All commands will be inserted as `fruithost <command> <arg1> <arg2> <arg...>`.
 
 | Binary | Command <td colspan=2> Arguments | Description |
-|:--------|:--------|:--------|:--------|
+| :-------- | :-------- | :-------- | :-------- |
 | <td colspan=4> **Globals** |
 | `fruithost` <td colspan=3> `version` | Show the current version |
 | `fruithost` <td colspan=3> `help` | Open the Help |
