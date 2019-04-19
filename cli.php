@@ -522,6 +522,11 @@
 							color('grey', ' > Current: ' . $remote->version);
 						}
 					}
+					
+					Database::update('fh_repositorys', 'id', [
+						'id'			=> $entry->id,
+						'time_updated'	=> date('Y-m-d H:i:s', time())
+					]);
 				}
 			}
 			
@@ -643,6 +648,12 @@
 						$zip->close();
 						
 						// @ToDo trigger update script from module
+						
+						Database::update('fh_modules', 'name', [
+							'name'			=> $_SERVER['argv'][2],
+							'time_updated'	=> date('Y-m-d H:i:s', time())
+						]);
+						
 						color('green', 'Done.');
 					}
 				break;
