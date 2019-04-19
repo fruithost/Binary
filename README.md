@@ -1,5 +1,7 @@
 # Binary
-Binary backend for fruithost
+CLI / Shell backend for fruithost
+
+![Help](https://raw.githubusercontent.com/fruithost/Binary/master/screenshots/help.png)
 
 ## Troubleshooting
 If the binary not callable, you must manual add the script to the global scope:
@@ -25,7 +27,9 @@ All commands will be inserted as `fruithost <command> <arg1> <arg2> <arg...>`.
   </thead>
   <tbody>
     <tr>
-      <th colspan="5">💥 Globals</th>
+      <th>💥</th>
+      <th colspan="4">Globals</th>
+      <th>💥</th>
     </tr>
     <tr>
       <td><code>fruithost</code></td>
@@ -42,7 +46,7 @@ All commands will be inserted as `fruithost <command> <arg1> <arg2> <arg...>`.
     <tr>
       <td><code>fruithost</code></td>
       <td colspan="3"><code>status</code></td>
-      <td>Show teh status of your system</td>
+      <td>Show the status of your system</td>
     </tr>
     <tr>
       <td><code>fruithost</code></td>
@@ -59,7 +63,9 @@ All commands will be inserted as `fruithost <command> <arg1> <arg2> <arg...>`.
       <td colspan="5"></td>  
     </tr>
     <tr>
-      <th colspan="5">🔄 Updates & Upgrades</th>  
+      <th>🔄</th>
+      <th colspan="4">Updates & Upgrades</th>
+      <th>🔄</th>
     </tr>
     <tr>
       <td><code>fruithost</code></td>
@@ -85,7 +91,9 @@ All commands will be inserted as `fruithost <command> <arg1> <arg2> <arg...>`.
       <td colspan="5"></td>  
     </tr>
     <tr>
-      <th colspan="5">⚡️ Modules</th>
+      <th>⚡️</th>
+      <th colspan="4">Modules</th>
+      <th>⚡️</th>
     </tr>
     <tr>
       <td><code>fruithost</code></td>
@@ -112,7 +120,12 @@ All commands will be inserted as `fruithost <command> <arg1> <arg2> <arg...>`.
       <td>Disable the given module</td>
     </tr>
     <tr>
-      <th colspan="5">:octocat: Repositorys</th>  
+      <td colspan="5"></td>  
+    </tr>
+    <tr>
+      <th>:octocat:</th>
+      <th colspan="4">Repositorys</th>
+      <th>:octocat:</th>
     </tr>
     <tr>
       <td><code>fruithost</code></td>
