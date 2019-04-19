@@ -148,6 +148,159 @@
 	}
 	
 	switch($_SERVER['argv'][1]) {
+		case 'status':
+			color('red', 'Status currently not available', false);
+			color('grey', ' (Under development)');
+		break;
+		case 'statistics':
+			color('red', 'Statistics currently not available', false);
+			color('grey', ' (Under development)');
+		break;
+		case 'remove':
+		
+		break;
+		case 'install':
+		
+		break;
+		case 'enable':
+			$installed		= [];
+			$path			= sprintf('%s%s%s', dirname(PATH), DS, 'modules');
+			$enabled		= [];
+			
+			foreach(Database::fetch('SELECT * FROM `fh_modules`') AS $module) {
+				$enabled[$module->name] = $module;
+			}
+			
+			foreach(new \DirectoryIterator($path) AS $info) {
+				if($info->isDot()) {
+					continue;
+				}
+
+				$module = sprintf('%s%s%s', $path, DS, $info->getFilename());
+				
+				if(file_exists(sprintf('%s/module.package', $module))) {
+					$info = file_get_contents(sprintf('%s/module.package', $module));
+					
+					if(empty($info)) {
+						continue;
+					}
+					
+					$installed[basename($module)] = json_decode($info);
+				}
+			}
+			
+			if($_SERVER['argc'] === 2) {
+				color('grey', 'Following modules are currently disabled:');
+				
+				foreach(array_keys($installed) AS $index => $module) {
+					if(!in_array($module, array_keys($enabled)) || (isset($enabled[$module]) && $enabled[$module]->state === 'DISABLED')) {
+						color('yellow', $module, false);
+						color(null, ' (' . $installed[$module]->version . ')' . (count(array_keys($installed)) > $index + 1 ? ', ' : ''), false);
+					}
+				}
+				
+				line();
+				return;
+			}
+			
+			if(!isset($installed[$_SERVER['argv'][2]])) {
+				color('orange', 'The module ' . $_SERVER['argv'][2] . ' not exists!');
+				return;
+			}
+			
+			if(isset($enabled[$_SERVER['argv'][2]]) && $enabled[$_SERVER['argv'][2]]->state === 'ENABLED') {
+				color('orange', 'The module is already enabled!');
+				return;
+			}
+			
+			if(isset($enabled[$_SERVER['argv'][2]])) {
+				color('green', 'The module was successfully enabled.');
+				Database::update('fh_modules', 'name', [
+					'name'			=> $_SERVER['argv'][2],
+					'time_enabled'	=> date('Y-m-d H:i:s', time()),
+					'state'			=> 'ENABLED'
+				]);
+				return;
+			}
+			
+			color('green', 'The module was successfully enabled.');
+			Database::insert('fh_modules', [
+				'id'			=> NULL,
+				'name'			=> $_SERVER['argv'][2],
+				'time_enabled'	=> date('Y-m-d H:i:s', time()),
+				'time_updated'	=> NULL,
+				'state'			=> 'ENABLED'
+			]);
+		break;
+		case 'disable':
+			$installed		= [];
+			$path			= sprintf('%s%s%s', dirname(PATH), DS, 'modules');
+			$enabled		= [];
+			
+			foreach(Database::fetch('SELECT * FROM `fh_modules`') AS $module) {
+				$enabled[$module->name] = $module;
+			}
+			
+			foreach(new \DirectoryIterator($path) AS $info) {
+				if($info->isDot()) {
+					continue;
+				}
+
+				$module = sprintf('%s%s%s', $path, DS, $info->getFilename());
+				
+				if(file_exists(sprintf('%s/module.package', $module))) {
+					$info = file_get_contents(sprintf('%s/module.package', $module));
+					
+					if(empty($info)) {
+						continue;
+					}
+					
+					$installed[basename($module)] = json_decode($info);
+				}
+			}
+			
+			if($_SERVER['argc'] === 2) {
+				color('grey', 'Following modules are currently enabled:');
+				
+				foreach(array_keys($installed) AS $index => $module) {
+					if(in_array($module, array_keys($enabled)) && (isset($enabled[$module]) && $enabled[$module]->state === 'ENABLED')) {
+						color('yellow', $module, false);
+						color(null, ' (' . $installed[$module]->version . ')' . (count(array_keys($installed)) > $index + 1 ? ', ' : ''), false);
+					}
+				}
+				
+				line();
+				return;
+			}
+			
+			if(!isset($installed[$_SERVER['argv'][2]])) {
+				color('orange', 'The module ' . $_SERVER['argv'][2] . ' not exists!');
+				return;
+			}
+			
+			if(isset($enabled[$_SERVER['argv'][2]]) && $enabled[$_SERVER['argv'][2]]->state === 'DISABLED') {
+				color('orange', 'The module is already disabled!');
+				return;
+			}
+			
+			if(isset($enabled[$_SERVER['argv'][2]])) {
+				color('green', 'The module was successfully disabled.');
+				Database::update('fh_modules', 'name', [
+					'name'			=> $_SERVER['argv'][2],
+					'state'			=> 'DISABLED'
+				]);
+				return;
+			}
+			
+			color('green', 'The module was successfully disabled.');
+			Database::insert('fh_modules', [
+				'id'			=> NULL,
+				'name'			=> $_SERVER['argv'][2],
+				'time_enabled'	=> NULL,
+				'time_updated'	=> NULL,
+				'state'			=> 'DISABLED'
+			]);
+		break;
 		case 'daemon':
 			$enabled	= [];
 			$path		= sprintf('%s%s%s', dirname(PATH), DS, 'modules');
