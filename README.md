@@ -28,7 +28,8 @@ All commands will be inserted as `fruithost <command> <arg1> <arg2> <arg...>`.
   <tbody>
     <tr>
       <th>💥</th>
-      <th colspan="5">Globals</th>
+      <th colspan="4">Globals</th>
+      <th>💥</th>
     </tr>
     <tr>
       <td><code>fruithost</code></td>
@@ -63,7 +64,8 @@ All commands will be inserted as `fruithost <command> <arg1> <arg2> <arg...>`.
     </tr>
     <tr>
       <th>🔄</th>
-      <th colspan="5">Updates & Upgrades</th>  
+      <th colspan="4">Updates & Upgrades</th>
+      <th>🔄</th>
     </tr>
     <tr>
       <td><code>fruithost</code></td>
@@ -90,7 +92,8 @@ All commands will be inserted as `fruithost <command> <arg1> <arg2> <arg...>`.
     </tr>
     <tr>
       <th>⚡️</th>
-      <th colspan="5">Modules</th>
+      <th colspan="4">Modules</th>
+      <th>⚡️</th>
     </tr>
     <tr>
       <td><code>fruithost</code></td>
@@ -121,7 +124,8 @@ All commands will be inserted as `fruithost <command> <arg1> <arg2> <arg...>`.
     </tr>
     <tr>
       <th>:octocat:</th>
-      <th colspan="5">Repositorys</th>  
+      <th colspan="4">Repositorys</th>
+      <th>:octocat:</th>
     </tr>
     <tr>
       <td><code>fruithost</code></td>
