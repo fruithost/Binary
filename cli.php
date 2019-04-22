@@ -309,6 +309,13 @@
 			
 			color('yellow', 'Running Daemon...');
 			
+			foreach(Database::fetch('SELECT `username` FROM `fh_users`') AS $user) {
+				if(!file_exists(sprintf('%s%s', HOST_PATH, $user->username))) {
+					mkdir(sprintf('%s%s', HOST_PATH, $user->username));
+				}
+			}
+			
+			// /var/fruithost/users/demo
 			foreach(Database::fetch('SELECT `name` FROM `fh_modules` WHERE `state`=\'ENABLED\'') AS $entry) {
 				$enabled[] = $entry->name;
 			}
