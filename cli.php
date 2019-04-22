@@ -1,12 +1,14 @@
 <?php
 	if(!defined('PATH')) {
-		define('PATH', sprintf('%s/', dirname(__FILE__)));
+		define('PATH', sprintf('%s/', dirname(dirname(__FILE__))));
 	}
 	
-	require_once(dirname(PATH) . '/panel/.security.php');
-	require_once(dirname(PATH) . '/panel/config.php');
-	require_once(dirname(PATH) . '/panel/classes/Database.class.php');
-	require_once(dirname(PATH) . '/panel/classes/DatabaseFactory.class.php');
+	require_once(PATH . '/panel/.security.php');
+	require_once(PATH . '/panel/config.php');
+	require_once(PATH . '/panel/classes/Session.class.php');
+	require_once(PATH . '/panel/classes/Auth.class.php');
+	require_once(PATH . '/panel/classes/Database.class.php');
+	require_once(PATH . '/panel/classes/DatabaseFactory.class.php');
 
 	use fruithost\Database;
 	
@@ -93,8 +95,8 @@
 	
 	function version() {
 		$version = (object) [
-			'panel'		=> file_get_contents(sprintf('%s%s%s%s%s', dirname(PATH), DS, 'panel', DS, '.version')),
-			'binary'	=> file_get_contents(sprintf('%s%s%s%s%s', dirname(PATH), DS, 'bin', DS, '.version'))
+			'panel'		=> file_get_contents(sprintf('%s%s%s%s%s', PATH, DS, 'panel', DS, '.version')),
+			'binary'	=> file_get_contents(sprintf('%s%s%s%s%s', PATH, DS, 'bin', DS, '.version'))
 		];
 		
 		color('yellow', 'fruithost', false);
@@ -164,7 +166,7 @@
 		break;
 		case 'enable':
 			$installed		= [];
-			$path			= sprintf('%s%s%s', dirname(PATH), DS, 'modules');
+			$path			= sprintf('%s%s%s', PATH, DS, 'modules');
 			$enabled		= [];
 			
 			foreach(Database::fetch('SELECT * FROM `fh_modules`') AS $module) {
@@ -234,7 +236,7 @@
 		break;
 		case 'disable':
 			$installed		= [];
-			$path			= sprintf('%s%s%s', dirname(PATH), DS, 'modules');
+			$path			= sprintf('%s%s%s', PATH, DS, 'modules');
 			$enabled		= [];
 			
 			foreach(Database::fetch('SELECT * FROM `fh_modules`') AS $module) {
@@ -303,7 +305,7 @@
 		break;
 		case 'daemon':
 			$enabled	= [];
-			$path		= sprintf('%s%s%s', dirname(PATH), DS, 'modules');
+			$path		= sprintf('%s%s%s', PATH, DS, 'modules');
 			
 			color('yellow', 'Running Daemon...');
 			
@@ -424,7 +426,7 @@
 				color('orange', 'No repositorys for update available.');
 			} else {
 				$installed	= [];
-				$path		= sprintf('%s%s%s', dirname(PATH), DS, 'modules');
+				$path		= sprintf('%s%s%s', PATH, DS, 'modules');
 				
 				foreach(new \DirectoryIterator($path) AS $info) {
 					if($info->isDot()) {
@@ -530,7 +532,7 @@
 				}
 			}
 			
-			file_put_contents(sprintf('%s%s%s%s%s', dirname(PATH), DS, 'temp', DS, 'update.list'), json_encode($updateable));
+			file_put_contents(sprintf('%s%s%s%s%s', PATH, DS, 'temp', DS, 'update.list'), json_encode($updateable));
 			line();
 			color('green', 'Found ' . count($updateable) . ' related Update' . (count($updateable) === 1 ? '' : 's'));
 			
@@ -549,7 +551,7 @@
 			// @ToDo check Core
 		break;
 		case 'upgrade':
-			$path = sprintf('%s%s%s%s%s', dirname(PATH), DS, 'temp', DS, 'update.list');
+			$path = sprintf('%s%s%s%s%s', PATH, DS, 'temp', DS, 'update.list');
 			
 			if(!file_exists($path)) {
 				color(null, 'No updates available.');
@@ -631,7 +633,7 @@
 						return;
 					}
 					
-					$path = sprintf('%s%s%s%s%s', dirname(PATH), DS, 'temp', DS, 'update.package');
+					$path = sprintf('%s%s%s%s%s', PATH, DS, 'temp', DS, 'update.package');
 					file_put_contents($path, $content);
 					
 					$zip = new ZipArchive;
@@ -640,7 +642,7 @@
 						color('orange', 'Broken package.');
 						return;
 					} else {
-						if(!$zip->extractTo(sprintf('%s%s%s%s', dirname(PATH), DS, 'modules', DS))) {
+						if(!$zip->extractTo(sprintf('%s%s%s%s', PATH, DS, 'modules', DS))) {
 							print "\033[31;31mCan't upgrade: " . $zip->getStatusString() . "\033[39m" . PHP_EOL;
 							return;
 						}
