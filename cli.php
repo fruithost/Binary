@@ -315,7 +315,6 @@
 				}
 			}
 			
-			// /var/fruithost/users/demo
 			foreach(Database::fetch('SELECT `name` FROM `fh_modules` WHERE `state`=\'ENABLED\'') AS $entry) {
 				$enabled[] = $entry->name;
 			}
