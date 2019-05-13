@@ -169,7 +169,7 @@
 			$path			= sprintf('%s%s%s', PATH, DS, 'modules');
 			$enabled		= [];
 			
-			foreach(Database::fetch('SELECT * FROM `fh_modules`') AS $module) {
+			foreach(Database::fetch('SELECT * FROM `' . DATABASE_PREFIX . 'modules`') AS $module) {
 				$enabled[$module->name] = $module;
 			}
 			
@@ -217,7 +217,7 @@
 			
 			if(isset($enabled[$_SERVER['argv'][2]])) {
 				color('green', 'The module was successfully enabled.');
-				Database::update('fh_modules', 'name', [
+				Database::update(DATABASE_PREFIX . 'modules', 'name', [
 					'name'			=> $_SERVER['argv'][2],
 					'time_enabled'	=> date('Y-m-d H:i:s', time()),
 					'state'			=> 'ENABLED'
@@ -226,7 +226,7 @@
 			}
 			
 			color('green', 'The module was successfully enabled.');
-			Database::insert('fh_modules', [
+			Database::insert(DATABASE_PREFIX . 'modules', [
 				'id'			=> NULL,
 				'name'			=> $_SERVER['argv'][2],
 				'time_enabled'	=> date('Y-m-d H:i:s', time()),
@@ -239,7 +239,7 @@
 			$path			= sprintf('%s%s%s', PATH, DS, 'modules');
 			$enabled		= [];
 			
-			foreach(Database::fetch('SELECT * FROM `fh_modules`') AS $module) {
+			foreach(Database::fetch('SELECT * FROM `' . DATABASE_PREFIX . 'modules`') AS $module) {
 				$enabled[$module->name] = $module;
 			}
 			
@@ -287,7 +287,7 @@
 			
 			if(isset($enabled[$_SERVER['argv'][2]])) {
 				color('green', 'The module was successfully disabled.');
-				Database::update('fh_modules', 'name', [
+				Database::update(DATABASE_PREFIX . 'modules', 'name', [
 					'name'			=> $_SERVER['argv'][2],
 					'state'			=> 'DISABLED'
 				]);
@@ -295,7 +295,7 @@
 			}
 			
 			color('green', 'The module was successfully disabled.');
-			Database::insert('fh_modules', [
+			Database::insert(DATABASE_PREFIX . 'modules', [
 				'id'			=> NULL,
 				'name'			=> $_SERVER['argv'][2],
 				'time_enabled'	=> NULL,
@@ -309,13 +309,13 @@
 			
 			color('yellow', 'Running Daemon...');
 			
-			foreach(Database::fetch('SELECT `username` FROM `fh_users`') AS $user) {
+			foreach(Database::fetch('SELECT `username` FROM `' . DATABASE_PREFIX . 'users`') AS $user) {
 				if(!file_exists(sprintf('%s%s', HOST_PATH, $user->username))) {
 					mkdir(sprintf('%s%s', HOST_PATH, $user->username));
 				}
 			}
 			
-			foreach(Database::fetch('SELECT `name` FROM `fh_modules` WHERE `state`=\'ENABLED\'') AS $entry) {
+			foreach(Database::fetch('SELECT `name` FROM `' . DATABASE_PREFIX . 'modules` WHERE `state`=\'ENABLED\'') AS $entry) {
 				$enabled[] = $entry->name;
 			}
 			
@@ -368,7 +368,7 @@
 						return;
 					}
 					
-					$repositorys = Database::fetch('SELECT * FROM `fh_repositorys` WHERE `url`=:url', [
+					$repositorys = Database::fetch('SELECT * FROM `' . DATABASE_PREFIX . 'repositorys` WHERE `url`=:url', [
 						'url'	=> $_SERVER['argv'][3]
 					]);
 					
@@ -377,7 +377,7 @@
 					} else {
 						color('green', 'Repository added.');
 						
-						Database::insert('fh_repositorys', [
+						Database::insert(DATABASE_PREFIX . 'repositorys', [
 							'id'			=> null,
 							'url'			=> $_SERVER['argv'][3],
 							'time_updated'	=> NULL
@@ -390,7 +390,7 @@
 						return;
 					}
 					
-					$repositorys = Database::fetch('SELECT * FROM `fh_repositorys` WHERE `url`=:url LIMIT 1', [
+					$repositorys = Database::fetch('SELECT * FROM `' . DATABASE_PREFIX . 'repositorys` WHERE `url`=:url LIMIT 1', [
 						'url'	=> $_SERVER['argv'][3]
 					]);
 					
@@ -399,20 +399,20 @@
 					} else {
 						color('green', 'Repository removed.');
 						
-						Database::delete('fh_repositorys', [
+						Database::delete(DATABASE_PREFIX . 'repositorys', [
 							'url'	=> $_SERVER['argv'][3]
 						]);
 					}
 				break;
 				case 'list':
-					$repositorys = Database::fetch('SELECT * FROM `fh_repositorys`');
+					$repositorys = Database::fetch('SELECT * FROM `' . DATABASE_PREFIX . 'repositorys`');
 					
 					if(count($repositorys) === 0) {
 						color('orange', 'No repositorys available.');
 					} else {
 						color('grey', 'Following repositorys are registred:');
 						
-						foreach(Database::fetch('SELECT * FROM `fh_repositorys`') AS $entry) {
+						foreach(Database::fetch('SELECT * FROM `' . DATABASE_PREFIX . 'repositorys`') AS $entry) {
 							color('yellow', TAB . '- ' . $entry->url);
 						}
 					}
@@ -423,7 +423,7 @@
 			}
 		break;
 		case 'update':
-			$repositorys	= Database::fetch('SELECT * FROM `fh_repositorys`');
+			$repositorys	= Database::fetch('SELECT * FROM `' . DATABASE_PREFIX . 'repositorys`');
 			$updateable		= [];
 			$packages		= [];
 			$conflicts		= [];
@@ -452,7 +452,7 @@
 					}
 				}
 				
-				foreach(Database::fetch('SELECT * FROM `fh_repositorys`') AS $entry) {
+				foreach(Database::fetch('SELECT * FROM `' . DATABASE_PREFIX . 'repositorys`') AS $entry) {
 					line();
 					color('yellow', 'Load ' . $entry->url);
 					
@@ -531,7 +531,7 @@
 						}
 					}
 					
-					Database::update('fh_repositorys', 'id', [
+					Database::update(DATABASE_PREFIX . 'repositorys', 'id', [
 						'id'			=> $entry->id,
 						'time_updated'	=> date('Y-m-d H:i:s', time())
 					]);
@@ -657,7 +657,7 @@
 						
 						// @ToDo trigger update script from module
 						
-						Database::update('fh_modules', 'name', [
+						Database::update(DATABASE_PREFIX . 'modules', 'name', [
 							'name'			=> $_SERVER['argv'][2],
 							'time_updated'	=> date('Y-m-d H:i:s', time())
 						]);
