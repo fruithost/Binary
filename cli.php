@@ -305,6 +305,7 @@
 		break;
 		case 'daemon':
 			$enabled	= [];
+			$deinstall	= [];
 			$path		= sprintf('%s%s%s', PATH, DS, 'modules');
 			
 			color('yellow', 'Running Daemon...');
@@ -319,6 +320,10 @@
 				$enabled[] = $entry->name;
 			}
 			
+			foreach(Database::fetch('SELECT `name` FROM `' . DATABASE_PREFIX . 'modules` WHERE `time_deleted` IS NOT NULL') AS $entry) {
+				$deinstall[] = $entry->name;
+			}
+			
 			foreach(new \DirectoryIterator($path) AS $info) {
 				if($info->isDot()) {
 					continue;
@@ -326,7 +331,27 @@
 
 				$module = sprintf('%s%s%s', $path, DS, $info->getFilename());
 				
-				if(in_array(basename($module), $enabled)) {
+				if(in_array(basename($module), $deinstall)) {
+					color('red', '~ DEINSTALL ' . $info->getFileName());
+					
+					if(file_exists(sprintf('%s/setup/deinstall.php', $module))) {
+						color('green', '+ Run uninstaller ' . $info->getFileName());
+						require_once(sprintf('%s/setup/deinstall.php', $module));
+					}
+					
+					if(file_exists($module)) {
+						foreach(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($module, \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST) AS $fileinfo) {
+							$todo = ($fileinfo->isDir() ? 'rmdir' : 'unlink');
+							$todo($fileinfo->getRealPath());
+						}
+
+						rmdir($module);
+					}
+					
+					Database::delete(DATABASE_PREFIX . 'modules', [
+						'name'			=> $info->getFileName()
+					]);
+				} else if(in_array(basename($module), $enabled)) {
 					if(file_exists(sprintf('%s/daemon.php', $module))) {
 						color('green', '+ Run ' . $info->getFileName());
 						require_once(sprintf('%s/daemon.php', $module));
