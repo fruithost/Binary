@@ -159,10 +159,136 @@
 			color('grey', ' (Under development)');
 		break;
 		case 'remove':
-		
+			color('red', 'Deinstallation currently not available', false);
+			color('grey', ' (Under development)');
 		break;
 		case 'install':
-		
+			if($_SERVER['argc'] === 2) {
+				$repositorys = Database::fetch('SELECT * FROM `' . DATABASE_PREFIX . 'repositorys`');
+					
+				if(count($repositorys) === 0) {
+					color('orange', 'No repositorys available.');
+				} else {
+					color('grey', 'Following modules can be installed:');
+					
+					foreach(Database::fetch('SELECT * FROM `' . DATABASE_PREFIX . 'repositorys`') AS $entry) {
+						line();
+						
+						// Load GitHub by RAW
+						if(preg_match('/github\.com\/([^\/]+)\/(.*)(?:\/)?$/Uis', $entry->url, $matches)) {
+							$entry->url = sprintf('https://raw.githubusercontent.com/%s/%s/master', $matches[1], rtrim($matches[2], '/'));
+						}
+						
+						$list		= @file_get_contents(sprintf('%s/modules.list', $entry->url));
+						
+						if(empty($list)) {
+							continue;
+						}
+						
+						color('grey', $entry->url);
+						
+						$modules	= explode(PHP_EOL, $list);
+						
+						color('yellow', implode(', ', array_values($modules)));
+					}
+				}
+				
+				line();
+				return;
+			}
+			
+			$name		= trim($_SERVER['argv'][2]);
+			$found		= false;
+			$repository = NULL;
+			
+			if(Database::exists('SELECT `id` FROM `' . DATABASE_PREFIX . 'modules` WHERE `name`=:name LIMIT 1', [
+				'name'			=> $name
+			])) {
+				color('red', 'Module is already installed!');
+				return;
+			}
+				
+			foreach(Database::fetch('SELECT * FROM `' . DATABASE_PREFIX . 'repositorys`') AS $entry) {
+				// Load GitHub by RAW
+				if(preg_match('/github\.com\/([^\/]+)\/(.*)(?:\/)?$/Uis', $entry->url, $matches)) {
+					$entry->url = sprintf('https://raw.githubusercontent.com/%s/%s/master', $matches[1], rtrim($matches[2], '/'));
+				}
+				
+				$list		= @file_get_contents(sprintf('%s/modules.list', $entry->url));
+				
+				if(empty($list)) {
+					continue;
+				}
+				
+				$modules	= explode(PHP_EOL, $list);
+				
+				if(in_array($name, array_values($modules))) {
+					$found		= true;
+					$repository	= $entry->url;
+					break;
+				}
+			}
+			
+			if(!$found || empty($repository)) {
+				color('red', sprintf('The module %s was not found!', $name));
+				return;
+			}
+			
+			color('grey', sprintf('Fetching %s Module...', $name));
+			
+			if(preg_match('/github\.com\/([^\/]+)\/(.*)(?:\/)?$/Uis', $repository, $matches)) {
+				$package = sprintf('https://raw.githubusercontent.com/%s/%s/master', $matches[1], rtrim($matches[2], '/'));
+			} else {
+				$package = $repository;
+			}
+			
+			$repository	= sprintf('%s/modules.packages/%s.zip', $package, $name);
+			$content	= file_get_contents($repository);
+			
+			if(empty($content)) {
+				color('orange', 'Broken package.');
+				return;
+			}
+			
+			$path = sprintf('%s%s%s%s%s', PATH, DS, 'temp', DS, 'install_' . $name. '.package');
+			file_put_contents($path, $content);
+			
+			$zip = new ZipArchive;
+			
+			if($zip->open($path) !== TRUE) {
+				color('orange', 'Broken package.');
+				return;
+			} else {
+				if(!$zip->extractTo(sprintf('%s%s%s%s', PATH, DS, 'modules', DS))) {
+					print "\033[31;31mCan't upgrade: " . $zip->getStatusString() . "\033[39m" . PHP_EOL;
+					return;
+				}
+				
+				$zip->close();
+				
+				$module_path = sprintf('%s%s%s%s%s', PATH, DS, 'modules', DS, $name);
+				
+				if(file_exists(sprintf('%s/setup/install.php', $module_path))) {
+					color('green', '+ Run Install-Script');
+					require_once(sprintf('%s/setup/install.php', $module_path));
+				}
+				
+				Database::insert(DATABASE_PREFIX . 'modules', [
+					'id'			=> NULL,
+					'name'			=> $name,
+					'state'			=> 'DISABLED',
+					'time_enabled'	=> NULL,
+					'time_updated'	=> NULL,
+					'time_deleted'	=> NULL
+				]);
+				
+				color('green', 'The module was successfully installed.');
+				color(null, 'Please run ', false);
+				color('yellow', 'fruithost enable <module>', false);
+				color(null, '.');
+				
+				@unlink($path);
+			}
 		break;
 		case 'enable':
 			$installed		= [];
@@ -335,9 +461,13 @@
 					color('red', '~ DEINSTALL ' . $info->getFileName());
 					
 					if(file_exists(sprintf('%s/setup/deinstall.php', $module))) {
-						color('green', '+ Run uninstaller ' . $info->getFileName());
+						color('green', '+ Run Uninstall-Script ' . $info->getFileName());
 						require_once(sprintf('%s/setup/deinstall.php', $module));
 					}
+					
+					Database::delete(DATABASE_PREFIX . 'modules', [
+						'name' => basename($module)
+					]);
 					
 					if(file_exists($module)) {
 						foreach(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($module, \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST) AS $fileinfo) {
@@ -347,10 +477,6 @@
 
 						rmdir($module);
 					}
-					
-					Database::delete(DATABASE_PREFIX . 'modules', [
-						'name'			=> $info->getFileName()
-					]);
 				} else if(in_array(basename($module), $enabled)) {
 					if(file_exists(sprintf('%s/daemon.php', $module))) {
 						color('green', '+ Run ' . $info->getFileName());
@@ -534,6 +660,10 @@
 						}
 						
 						$color = 'orange';
+						
+						if(!isset($installed[$name])) {
+							continue;
+						}
 						
 						$check	= $installed[$name];
 						$remote	= json_decode($info);
