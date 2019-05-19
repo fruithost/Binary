@@ -9,6 +9,7 @@
 	require_once(PATH . '/panel/classes/Auth.class.php');
 	require_once(PATH . '/panel/classes/Database.class.php');
 	require_once(PATH . '/panel/classes/DatabaseFactory.class.php');
+	require_once(PATH . '/panel/classes/Encryption.class.php');
 
 	use fruithost\Database;
 	
@@ -110,6 +111,23 @@
 	
 	function line() {
 		print PHP_EOL;
+	}
+	
+	function setSettings($name, $value) {
+		if(Database::exists('SELECT `id` FROM `' . DATABASE_PREFIX . 'settings` WHERE `key`=:key LIMIT 1', [
+			'key'		=> $name
+		])) {
+			Database::update(DATABASE_PREFIX . 'settings', [ 'key' ], [
+				'key'			=> $name,
+				'value'			=> $value
+			]);
+		} else {
+			Database::insert(DATABASE_PREFIX . 'settings', [
+				'id'			=> NULL,
+				'key'			=> $name,
+				'value'			=> $value
+			]);
+		}
 	}
 	
 	function color($color, $message, $break = true) {
@@ -430,6 +448,9 @@
 			]);
 		break;
 		case 'daemon':
+			setSettings('DAEMON_TIME_START',		date('Y-m-d H:i:s', time()));
+			setSettings('DAEMON_RUNNING_START',		microtime(true));
+			
 			$enabled	= [];
 			$deinstall	= [];
 			$path		= sprintf('%s%s%s', PATH, DS, 'modules');
@@ -488,6 +509,9 @@
 					color('grey', '- Ignore ' . $info->getFileName() . ' (Disabled)');
 				}
 			}
+			
+			setSettings('DAEMON_TIME_END',		date('Y-m-d H:i:s', time()));
+			setSettings('DAEMON_RUNNING_END',	microtime(true));
 		break;
 		case 'repository':
 			if($_SERVER['argc'] === 2) {
