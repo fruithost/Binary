@@ -1,0 +1,1 @@
+* * * * * if [ -x /etc/fruithost/bin/fruithost.sh ]; then /etc/fruithost/bin/fruithost.sh daemon >> /var/fruithost/logs/daemon.log 2>&1; fi
