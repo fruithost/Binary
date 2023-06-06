@@ -3,8 +3,18 @@
 		define('PATH', sprintf('%s/', dirname(dirname(__FILE__))));
 	}
 	
-	require_once(PATH . '/panel/.security.php');
-	require_once(PATH . '/panel/config.php');
+	if(is_readable(PATH . '/panel/.security.php')) {
+		$this->require(PATH . '/panel/.security.php');
+	} else if(is_readable(PATH . '/.security.php')) {
+		$this->require(PATH . '/.security.php');
+	}
+	
+	if(is_readable(PATH . '/panel/.config.php')) {
+		$this->require(PATH . '/panel/.config.php');
+	} else if(is_readable(PATH . '/.config.php')) {
+		$this->require(PATH . '/.config.php');
+	}
+	
 	require_once(PATH . '/panel/classes/Session.class.php');
 	require_once(PATH . '/panel/classes/Auth.class.php');
 	require_once(PATH . '/panel/classes/Database.class.php');
