@@ -83,6 +83,10 @@
 		color('yellow', '<module>', false);
 		color(null, ' - Install given module');
 		
+		color('green', 'reinstall ', false);
+		color('yellow', '<module>', false);
+		color(null, ' - Reinstall given module');
+		
 		color('green', 'enable ', false);
 		color('yellow', '<module>', false);
 		color(null, ' - Enable the given module');
@@ -197,6 +201,7 @@
 			color('red', 'Deinstallation currently not available', false);
 			color('grey', ' (Under development)');
 		break;
+		case 'reinstall':
 		case 'install':
 			if($_SERVER['argc'] === 2) {
 				$repositorys = Database::fetch('SELECT * FROM `' . DATABASE_PREFIX . 'repositorys`');
@@ -236,11 +241,13 @@
 			$found		= false;
 			$repository = NULL;
 			
-			if(Database::exists('SELECT `id` FROM `' . DATABASE_PREFIX . 'modules` WHERE `name`=:name LIMIT 1', [
-				'name'			=> $name
-			])) {
-				color('red', 'Module is already installed!');
-				return;
+			if($_SERVER['argv'][1] == 'install') {
+				if(Database::exists('SELECT `id` FROM `' . DATABASE_PREFIX . 'modules` WHERE `name`=:name LIMIT 1', [
+					'name'			=> $name
+				])) {
+					color('red', 'Module is already installed!');
+					return;
+				}
 			}
 				
 			foreach(Database::fetch('SELECT * FROM `' . DATABASE_PREFIX . 'repositorys`') AS $entry) {
