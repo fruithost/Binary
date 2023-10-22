@@ -69,8 +69,12 @@
 		color(null, ' - Check for updates');
 		
 		line();
-		color('grey', '═ Modules ═');
-		
+		color('grey', '═ Modules ═');		
+		color('pink', 'If you using ', false);		
+		color('red', '@', false);		
+		color('pink', ' instead of an name of ', false);	
+		color('yellow', '<module>', false);	
+		color('pink', ', you can handle all available modules', true);	
 		color('green', 'remove ', false);
 		color('yellow', '<module>', false);
 		color(null, ' - Delete / Deinstall given module');
@@ -156,6 +160,9 @@
 			break;
 			case 'grey';
 				$color = "\033[90m";
+			break;
+			case 'pink';
+				$color = "\033[35m";
 			break;
 			case 'orange';
 				$color = "\033[38;5;202m";
@@ -359,6 +366,24 @@
 				return;
 			}
 			
+			if($_SERVER['argv'][2] == '@') {
+				$modules = [];
+				
+				foreach(array_keys($installed) AS $index => $module) {
+					if(!in_array($module, array_keys($enabled)) || (isset($enabled[$module]) && $enabled[$module]->state === 'DISABLED')) {
+						$modules[] = $module;
+						Database::update(DATABASE_PREFIX . 'modules', 'name', [
+							'name'			=> $module,
+							'time_enabled'	=> date('Y-m-d H:i:s', time()),
+							'state'			=> 'ENABLED'
+						]);
+					}
+				}
+				
+				color('green', 'Follwing modiles was enabled: ' . implode(', ', $modules));
+				return;
+			}
+			
 			if(!isset($installed[$_SERVER['argv'][2]])) {
 				color('orange', 'The module ' . $_SERVER['argv'][2] . ' not exists!');
 				return;
@@ -426,6 +451,23 @@
 				}
 				
 				line();
+				return;
+			}
+			
+			if($_SERVER['argv'][2] == '@') {
+				$modules = [];
+				
+				foreach(array_keys($installed) AS $index => $module) {
+					if(!in_array($module, array_keys($enabled)) || (isset($enabled[$module]) && $enabled[$module]->state === 'ENABLED')) {
+						$modules[] = $module;
+						Database::update(DATABASE_PREFIX . 'modules', 'name', [
+							'name'			=> $module,
+							'state'			=> 'DISABLED'
+						]);
+					}
+				}
+				
+				color('green', 'Follwing modiles was disabled: ' . implode(', ', $modules));
 				return;
 			}
 			
