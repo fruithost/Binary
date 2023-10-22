@@ -4,15 +4,15 @@
 	}
 	
 	if(is_readable(PATH . '/panel/.security.php')) {
-		$this->require(PATH . '/panel/.security.php');
+		require(PATH . '/panel/.security.php');
 	} else if(is_readable(PATH . '/.security.php')) {
-		$this->require(PATH . '/.security.php');
+		require(PATH . '/.security.php');
 	}
 	
 	if(is_readable(PATH . '/panel/.config.php')) {
-		$this->require(PATH . '/panel/.config.php');
+		require(PATH . '/panel/.config.php');
 	} else if(is_readable(PATH . '/.config.php')) {
-		$this->require(PATH . '/.config.php');
+		require(PATH . '/.config.php');
 	}
 	
 	require_once(PATH . '/panel/classes/Session.class.php');
@@ -469,7 +469,7 @@
 			
 			foreach(Database::fetch('SELECT `username` FROM `' . DATABASE_PREFIX . 'users`') AS $user) {
 				if(!file_exists(sprintf('%s%s', HOST_PATH, $user->username))) {
-					mkdir(sprintf('%s%s', HOST_PATH, $user->username));
+					@mkdir(sprintf('%s%s', HOST_PATH, $user->username));
 				}
 			}
 			
