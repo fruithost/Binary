@@ -284,52 +284,74 @@
 				$package = $repository;
 			}
 			
-			$repository	= sprintf('%s/modules.packages/%s.zip', $package, $name);
-			$content	= file_get_contents($repository);
-			
-			if(empty($content)) {
-				color('orange', 'Broken package.');
-				return;
-			}
-			
-			$path = sprintf('%s%s%s%s%s', PATH, DS, 'temp', DS, 'install_' . $name. '.package');
-			file_put_contents($path, $content);
-			
-			$zip = new ZipArchive;
-			
-			if($zip->open($path) !== TRUE) {
-				color('orange', 'Broken package.');
-				return;
-			} else {
-				if(!$zip->extractTo(sprintf('%s%s%s%s', PATH, DS, 'modules', DS))) {
-					print "\033[31;31mCan't upgrade: " . $zip->getStatusString() . "\033[39m" . PHP_EOL;
+			// @ToDo --force argument
+			if($_SERVER['argv'][1] == 'install') {
+				$repository	= sprintf('%s/modules.packages/%s.zip', $package, $name);
+				$content	= file_get_contents($repository);
+				
+				if(empty($content)) {
+					color('orange', 'Broken package.');
 					return;
 				}
 				
-				$zip->close();
+				$path = sprintf('%s%s%s%s%s', PATH, DS, 'temp', DS, 'install_' . $name. '.package');
+				file_put_contents($path, $content);
 				
+				$zip = new ZipArchive;
+				
+				if($zip->open($path) !== TRUE) {
+					color('orange', 'Broken package.');
+					return;
+				} else {
+					if(!$zip->extractTo(sprintf('%s%s%s%s', PATH, DS, 'modules', DS))) {
+						print "\033[31;31mCan't upgrade: " . $zip->getStatusString() . "\033[39m" . PHP_EOL;
+						return;
+					}
+					
+					$zip->close();
+					
+					$module_path = sprintf('%s%s%s%s%s', PATH, DS, 'modules', DS, $name);
+					
+					if(file_exists(sprintf('%s/setup/install.php', $module_path))) {
+						color('green', '+ Run Install-Script');
+						
+						try {
+							require_once(sprintf('%s/setup/install.php', $module_path));
+						} catch(Exception $e) {
+							color('red', $e->getMessage());
+							color('orange', $e->getTraceAsString());
+						}
+					}
+					
+					Database::insert(DATABASE_PREFIX . 'modules', [
+						'id'			=> NULL,
+						'name'			=> $name,
+						'state'			=> 'DISABLED',
+						'time_enabled'	=> NULL,
+						'time_updated'	=> NULL,
+						'time_deleted'	=> NULL
+					]);
+					
+					color('green', 'The module was successfully installed.');
+					color(null, 'Please run ', false);
+					color('yellow', 'fruithost enable <module>', false);
+					color(null, '.');
+					
+					@unlink($path);
+				}
+			} else {
 				$module_path = sprintf('%s%s%s%s%s', PATH, DS, 'modules', DS, $name);
-				
+					
 				if(file_exists(sprintf('%s/setup/install.php', $module_path))) {
 					color('green', '+ Run Install-Script');
-					require_once(sprintf('%s/setup/install.php', $module_path));
+					
+					try {
+						require_once(sprintf('%s/setup/install.php', $module_path));
+					} catch(Exception $e) {
+						color('red', $e->getMessage());
+						color('orange', $e->getTraceAsString());
+					}
 				}
-				
-				Database::insert(DATABASE_PREFIX . 'modules', [
-					'id'			=> NULL,
-					'name'			=> $name,
-					'state'			=> 'DISABLED',
-					'time_enabled'	=> NULL,
-					'time_updated'	=> NULL,
-					'time_deleted'	=> NULL
-				]);
-				
-				color('green', 'The module was successfully installed.');
-				color(null, 'Please run ', false);
-				color('yellow', 'fruithost enable <module>', false);
-				color(null, '.');
-				
-				@unlink($path);
 			}
 		break;
 		case 'enable':
@@ -551,7 +573,13 @@
 					
 					if(file_exists(sprintf('%s/setup/deinstall.php', $module))) {
 						color('green', '+ Run Uninstall-Script ' . $info->getFileName());
-						require_once(sprintf('%s/setup/deinstall.php', $module));
+						
+						try {
+							require_once(sprintf('%s/setup/deinstall.php', $module));
+						} catch(Exception $e) {
+							color('red', $e->getMessage());
+							color('orange', $e->getTraceAsString());
+						}
 					}
 					
 					Database::delete(DATABASE_PREFIX . 'modules', [
@@ -569,7 +597,13 @@
 				} else if(in_array(basename($module), $enabled)) {
 					if(file_exists(sprintf('%s/daemon.php', $module))) {
 						color('green', '+ Run ' . $info->getFileName());
-						require_once(sprintf('%s/daemon.php', $module));
+						
+						try {
+							require_once(sprintf('%s/daemon.php', $module));
+						} catch(Exception $e) {
+							color('red', $e->getMessage());
+							color('orange', $e->getTraceAsString());
+						}
 					} else {
 						color('yellow', '- Skip ' . $info->getFileName() . ' (No Daemon)');
 					}
