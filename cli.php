@@ -512,6 +512,13 @@
 			
 			$enabled	= [];
 			$deinstall	= [];
+			$ignore		= [
+				'modules.list',
+				'.gitignore',
+				'LICENSE',
+				'.git',
+				'README.md'
+			];
 			$path		= sprintf('%s%s%s', PATH, DS, 'modules');
 			
 			color('yellow', 'Running Daemon...');
@@ -537,7 +544,9 @@
 
 				$module = sprintf('%s%s%s', $path, DS, $info->getFilename());
 				
-				if(in_array(basename($module), $deinstall)) {
+				if(in_array(basename($module), $ignore)) {
+					/* Do Nothing */
+				} else if(in_array(basename($module), $deinstall)) {
 					color('red', '~ DEINSTALL ' . $info->getFileName());
 					
 					if(file_exists(sprintf('%s/setup/deinstall.php', $module))) {
