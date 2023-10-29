@@ -245,6 +245,34 @@
 		case 'status':
 			color('red', 'Status currently not available', false);
 			color('grey', ' (Under development)');
+			
+			foreach([
+				'bin',
+				'config',
+				'panel',
+				'placeholder'
+			] AS $directory) {
+				$result = shell_exec(sprintf('cd /etc/fruithost/%s/ && git status -s', $directory));
+				
+				color('grey', 'Tracked Repo: ', false);
+				color('blue', sprintf('%s%s/', PATH, $directory));
+				
+				if(empty($result)) {
+					color('grey', "   - No changes -");
+				} else {
+					color('white', str_replace([
+						'M ',
+						'D ',
+						'A ',
+						'?? '
+					], [
+						"   \033[33m*\033[39m ",
+						"   \033[31;31m-\033[39m ",
+						"   \033[0;32m+\033[39m ",
+						"    \033[1;34m?\033[39m ",
+					], $result));
+				}
+			}
 		break;
 		case 'statistics':
 			color('red', 'Statistics currently not available', false);
