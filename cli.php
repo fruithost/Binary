@@ -156,7 +156,35 @@
 		print PHP_EOL;
 	}
 	
-	function setSettings($name, $value) {
+	function getSettings(string $name, mixed $default = NULL) : mixed {
+		$result = Database::single('SELECT * FROM `' . DATABASE_PREFIX . 'settings` WHERE `key`=:key LIMIT 1', [
+			'key'		=> $name
+		]);
+		
+		if(!empty($result) && !empty($result->value)) {
+			// Is Boolean: False
+			if(in_array(strtolower($result->value), [
+				'off', 'false', 'no'
+			])) {
+				return false;
+			// Is Boolean: True
+			} else if(in_array(strtolower($result->value), [
+				'on', 'true', 'yes'
+			])) {
+				return true;
+			}
+			
+			return $result->value;
+		}
+		
+		return $default;
+	}
+	
+	function setSettings(string $name, mixed $value = NULL) {
+		if(is_bool($value)) {
+			$value = ($value ? 'true' : 'false');
+		}
+		
 		if(Database::exists('SELECT `id` FROM `' . DATABASE_PREFIX . 'settings` WHERE `key`=:key LIMIT 1', [
 			'key'		=> $name
 		])) {
@@ -570,10 +598,16 @@
 			
 			color('yellow', 'Running Daemon...');
 			
+			$count = 0;
 			foreach(Database::fetch('SELECT `username` FROM `' . DATABASE_PREFIX . 'users`') AS $user) {
 				if(!file_exists(sprintf('%s%s', HOST_PATH, $user->username))) {
 					@mkdir(sprintf('%s%s', HOST_PATH, $user->username));
+					++$count;
 				}
+			}
+			
+			if($count >= 1) {
+				color('white', 'Fixing User-Paths [' . $count . ']');
 			}
 			
 			foreach(Database::fetch('SELECT `name` FROM `' . DATABASE_PREFIX . 'modules` WHERE `state`=\'ENABLED\'') AS $entry) {
@@ -639,6 +673,16 @@
 			
 			setSettings('DAEMON_TIME_END',		date('Y-m-d H:i:s', time()));
 			setSettings('DAEMON_RUNNING_END',	microtime(true));
+			
+			// Rebooting
+			$rebooting = getSettings('REBOOT', null);
+			if(!empty($rebooting)) {
+				color('yellow', 'WARNING: ', false);
+				color('white', 'Server will be rebooting now...', false);
+				color('blue', ' [' . $rebooting . ']');
+				setSettings('REBOOT', null);
+				shell_exec('/sbin/shutdown -r now');
+			}
 		break;
 		case 'repository':
 			if($_SERVER['argc'] === 2) {
