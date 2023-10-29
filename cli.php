@@ -243,18 +243,40 @@
 	
 	switch($_SERVER['argv'][1]) {
 		case 'status':
-			color('red', 'Status currently not available', false);
-			color('grey', ' (Under development)');
+			color('grey', '═ System ═');
 			
+			#setSettings('DAEMON_TIME_END',		date('Y-m-d H:i:s', time()));
+			#setSettings('DAEMON_RUNNING_END',	microtime(true));
+			
+			$rebooting = getSettings('REBOOT', null);
+			if(!empty($rebooting)) {
+				color('yellow', 'WARNING: ', false);
+				color('white', 'Server will be rebooting now...', false);
+				color('blue', ' [' . $rebooting . ']');
+				line();
+			}
+			
+			color('yellow', 'Last Daemon:   ', false);
+			color('white', getSettings('DAEMON_TIME_END', null));
+			line();
+			
+			color('grey', '═ Git-Repositorys ═');
 			foreach([
 				'bin',
 				'config',
 				'panel',
-				'placeholder'
+				'placeholder',
+				'Installers',
+				'themes',
+				'modules'
 			] AS $directory) {
-				$result = shell_exec(sprintf('cd /etc/fruithost/%s/ && git status -s', $directory));
+				if(!file_exists(sprintf('%s%s/.git', PATH, $directory))) {
+					continue;
+				}
 				
-				color('grey', 'Tracked Repo: ', false);
+				$result = shell_exec(sprintf('cd %s%s/ && git status -s', PATH, $directory));
+				
+				color('yellow', 'Tracked Repo: ', false);
 				color('blue', sprintf('%s%s/', PATH, $directory));
 				
 				if(empty($result)) {
