@@ -20,8 +20,18 @@
 	require_once(PATH . '/panel/classes/Database.class.php');
 	require_once(PATH . '/panel/classes/DatabaseFactory.class.php');
 	require_once(PATH . '/panel/classes/Encryption.class.php');
+	require_once(PATH . '/panel/libraries/Sepia/PoParser/Catalog/Catalog.php');
+	require_once(PATH . '/panel/libraries/Sepia/PoParser/Catalog/CatalogArray.php');
+	require_once(PATH . '/panel/libraries/Sepia/PoParser/Catalog/Entry.php');
+	require_once(PATH . '/panel/libraries/Sepia/PoParser/Catalog/EntryFactory.php');
+	require_once(PATH . '/panel/libraries/Sepia/PoParser/Catalog/Header.php');
+	require_once(PATH . '/panel/libraries/Sepia/PoParser/Parser.php');
+	require_once(PATH . '/panel/libraries/Sepia/PoParser/SourceHandler/SourceHandler.php');
+	require_once(PATH . '/panel/libraries/Sepia/PoParser/SourceHandler/FileSystem.php');
 
 	use fruithost\Database;
+	use \Sepia\PoParser\SourceHandler\FileSystem;
+	use \Sepia\PoParser\Parser;
 	
 	define('TAB', "\t");
 	define('BS', '\\');
@@ -110,6 +120,21 @@
 		color('grey', '  └ ', false);
 		color('yellow', 'list', false);
 		color(null, ' - List all registred repositorys');
+		
+		line();
+		color('grey', '═ Languages ═');
+		
+		color('green', 'language');
+		color('grey', '  ├ ', false);
+		color('yellow', 'list', false);
+		color(null, ' - List all available languages');
+		color('grey', '  ├ ', false);
+		color('yellow', 'scan', false);
+		color(null, ' - Scan all files for language attributes');
+		color('grey', '  └ ', false);
+		color('yellow', 'add', false);
+		color('blue', ' <xx_XX>', false);
+		color(null, ' - Add a new language (for sample de_DE)');
 	}
 	
 	function version() {
@@ -950,6 +975,135 @@
 		break;
 		case 'version':
 			version();
+		break;
+		case 'language':
+			if($_SERVER['argc'] >= 3) {
+				switch($_SERVER['argv'][2]) {
+					case 'list':
+						$languages = [];
+						$directory = sprintf('%spanel/languages/', PATH);
+						
+						foreach(new \DirectoryIterator($directory) AS $info) {
+							if($info->isDot()) {
+								continue;
+							}
+							
+							if(preg_match('/(.*)\.po$/Uis', $info->getFileName(), $matches)) {
+								$language		= new Parser(new FileSystem($info->getPathName()));
+								$parsed			= $language->parse();
+								$header			= $parsed->getHeader();
+								
+								foreach($header->asArray() AS $line) {
+									if(preg_match('/Language: (.*)$/Uis', $line, $names)) {
+										$languages[$matches[1]] = $names[1];
+										break;
+									}
+								}
+							}
+						}
+						
+						color('pink', 'Following Language-Files in ', false);		
+						color('red', $directory, false);		
+						color('pink', ':');
+						
+						foreach($languages AS $code => $name) {
+							if(!next($languages)) {
+								color('grey', '  └ ', false);
+							} else {
+								color('grey', '  ├ ', false);
+							}
+							
+							color('yellow', $code, false);
+							color('blue', ' "' . $name . '"', false);
+							color('white', ' (' . $code . '.po)');
+						}
+					break;
+					case 'add':
+					case 'scan':
+						if($_SERVER['argv'][2] == 'add' && $_SERVER['argc'] === 3) {
+							color('orange', 'Please enter an language name!');
+							return;
+						}
+						
+						$scanned	= 0;
+						$found		= [];
+						$it			= new RecursiveIteratorIterator(
+							new \RecursiveDirectoryIterator(PATH, \RecursiveDirectoryIterator::SKIP_DOTS),
+							\RecursiveIteratorIterator::SELF_FIRST,
+							\RecursiveIteratorIterator::CATCH_GET_CHILD // Ignore "Permission denied"
+						);
+						
+						$it->rewind();
+						
+						while($it->valid()) {
+							if(!$it->isDot() && strpos($it->getSubPath(), '.git') == false) {
+								$file = $it->current();
+								
+								if($file->getExtension() == 'php') {
+									$content = file_get_contents($it->key());
+									
+									# Simple Quote
+									preg_match_all('/I18N::(__|get)\(\'([^\'\)]+)\'\)/Uis', $content, $matches);
+									
+									if(count($matches[2]) > 0) {
+										foreach($matches[2] AS $text) {
+											if(in_array($text, $found)) {
+												continue;
+											}
+											
+											$found[] 	= $text;
+										}
+									}
+									
+									# Double Quote
+									preg_match_all('/I18N::(__|get)\("([^"\)]+)"\)/Uis', $content, $matches);
+									
+									if(count($matches[2]) > 0) {
+										foreach($matches[2] AS $text) {
+											if(in_array($text, $found)) {
+												continue;
+											}
+											
+											$found[] 	= $text;
+										}
+									}
+									
+									++$scanned;
+								}
+							}
+
+							$it->next();
+						}
+						
+						$contents = '';
+						$contents .= 'msgid ""' . PHP_EOL;
+						$contents .= 'msgstr ""' . PHP_EOL;
+						$contents .= '"Content-Transfer-Encoding: 8bit\n"' . PHP_EOL;
+						$contents .= '"Content-Type: text/plain; charset=UTF-8\n"' . PHP_EOL;
+						$contents .= '"Language: $name\n"' . PHP_EOL;
+						$contents .= '' . PHP_EOL;
+
+						foreach($found AS $text) {
+							$contents .= '' . PHP_EOL;
+							$contents .= sprintf('msgid %s', json_encode($text)) . PHP_EOL;
+							$contents .= 'msgstr ""' . PHP_EOL;
+						}
+						
+						$directory = sprintf('%spanel/languages/', PATH);
+						file_put_contents(sprintf('%s$code.template', $directory), $contents);
+						
+						color('green', 'Scanned ' . $scanned . ' Files, Found ' . count($found) . ' language Strings.');
+						
+						if($_SERVER['argv'][2] == 'add' && $_SERVER['argc'] >= 3) {
+							$code = $_SERVER['argv'][3];
+							file_put_contents(sprintf('%s%s.po', $directory, $code), str_replace('$name', $code, $contents));
+							color('green', 'Language ' . $code . ' was successfully added.');
+						}
+					break;
+				}
+			} else {
+				help();
+			}
 		break;
 		default:
 			help();
