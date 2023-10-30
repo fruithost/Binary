@@ -654,6 +654,11 @@
 					@mkdir(sprintf('%s%s', HOST_PATH, $user->username));
 					++$count;
 				}
+				
+				if(!file_exists(sprintf('%s%s/logs', HOST_PATH, $user->username))) {
+					@mkdir(sprintf('%s%s/logs', HOST_PATH, $user->username));
+					++$count;
+				}
 			}
 			
 			if($count >= 1) {
