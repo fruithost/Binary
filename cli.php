@@ -661,6 +661,12 @@
 			}
 			@chmod(sprintf('%s/temp', HOST_PATH), 0777);
 			
+			if(!file_exists(sprintf('%s/modules', PATH))) {
+				@mkdir(sprintf('%s/modules', PATH));
+				color('white', sprintf("\t- %s/modules", PATH));
+			}
+			@chmod(sprintf('%s/modules', HOST_PATH), 0777);
+			
 			if(!file_exists(LOG_PATH)) {
 				@mkdir(LOG_PATH);
 				color('white', sprintf("\t- %s", LOG_PATH));
