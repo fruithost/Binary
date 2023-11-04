@@ -648,21 +648,61 @@
 			
 			color('yellow', 'Running Daemon...');
 			
-			$count = 0;
-			foreach(Database::fetch('SELECT `username` FROM `' . DATABASE_PREFIX . 'users`') AS $user) {
+			color('white', 'Fixing System-Paths');
+			if(!file_exists(sprintf('%s', HOST_PATH))) {
+				@mkdir(sprintf('%s', HOST_PATH));
+				color('white', sprintf("\t- %s", HOST_PATH));
+			}
+			@chmod(sprintf('%s', HOST_PATH), 0777);
+			
+			if(!file_exists(sprintf('%s/temp', PATH))) {
+				@mkdir(sprintf('%s/temp', PATH));
+				color('white', sprintf("\t- %s/temp", PATH));
+			}
+			@chmod(sprintf('%s/temp', HOST_PATH), 0777);
+			
+			if(!file_exists(LOG_PATH)) {
+				@mkdir(LOG_PATH);
+				color('white', sprintf("\t- %s", LOG_PATH));
+			}
+			@chmod(LOG_PATH, 0775);
+			
+			foreach(new \DirectoryIterator(LOG_PATH) AS $info) {
+				if($info->isDot()) {
+					continue;
+				}
+				
+				@chmod(sprintf('%s%s', LOG_PATH, $info->getFilename()), 0644);
+			}
+			
+			
+			color('white', 'Fixing User-Paths');
+			foreach(Database::fetch('SELECT `username` FROM `' . DATABASE_PREFIX . 'users` WHERE `deleted`=\'NO\'') AS $user) {
 				if(!file_exists(sprintf('%s%s', HOST_PATH, $user->username))) {
 					@mkdir(sprintf('%s%s', HOST_PATH, $user->username));
-					++$count;
+					color('white', sprintf("\t- %s%s", HOST_PATH, $user->username));
 				}
+				@chmod(sprintf('%s%s', HOST_PATH, $user->username), 0777);
 				
 				if(!file_exists(sprintf('%s%s/logs', HOST_PATH, $user->username))) {
 					@mkdir(sprintf('%s%s/logs', HOST_PATH, $user->username));
-					++$count;
+					color('white', sprintf("\t- %s%s/logs", HOST_PATH, $user->username));
 				}
+				@chmod(sprintf('%s%s/logs', HOST_PATH, $user->username), 0777);
 			}
 			
-			if($count >= 1) {
-				color('white', 'Fixing User-Paths [' . $count . ']');
+			// @ToDo Delete Users
+			$deleted_users = [];
+			foreach(Database::fetch('SELECT *, \'*********\' AS `password` FROM `' . DATABASE_PREFIX . 'users` WHERE `deleted`=\'YES\'') AS $user) {
+				$deleted_users[] = (object) [
+					'id'		=> $user->id,
+					'username'	=> $user->username,
+					'email'		=> $user->email
+				];
+			}
+			
+			if(count($deleted_users) > 0) {
+				color('white', 'Deleting Users [' . count($deleted_users) . ']');
 			}
 			
 			foreach(Database::fetch('SELECT `name` FROM `' . DATABASE_PREFIX . 'modules` WHERE `state`=\'ENABLED\'') AS $entry) {
@@ -723,6 +763,26 @@
 					}
 				} else {
 					color('grey', '- Ignore ' . $info->getFileName() . ' (Disabled)');
+				}
+			}
+			
+			if(count($deleted_users) > 0) {
+				foreach($deleted_users AS $user) {
+					color('white', 'Deleting User => ' . $user->username . '');
+					
+					if(file_exists(sprintf('%s%s/logs', HOST_PATH, $user->username))) {
+						shell_exec(sprintf('rm -R %s%s/logs', HOST_PATH, $user->username));
+						color('white', sprintf("\t- %s%s/logs", HOST_PATH, $user->username));
+					}
+					
+					if(file_exists(sprintf('%s%s', HOST_PATH, $user->username))) {
+						shell_exec(sprintf('rm -R %s%s', HOST_PATH, $user->username));
+						color('white', sprintf("\t- %s%s", HOST_PATH, $user->username));
+					}
+					
+					Database::delete(DATABASE_PREFIX . 'users', [
+						'id' => $user->id
+					]);
 				}
 			}
 			
