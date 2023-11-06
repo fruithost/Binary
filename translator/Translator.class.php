@@ -27,80 +27,13 @@
 							return;
 						}
 						
-						$scanned	= 0;
-						$found		= [];
-						$it			= new RecursiveIteratorIterator(
-							new \RecursiveDirectoryIterator(PATH, \RecursiveDirectoryIterator::SKIP_DOTS),
-							\RecursiveIteratorIterator::SELF_FIRST,
-							\RecursiveIteratorIterator::CATCH_GET_CHILD // Ignore "Permission denied"
-						);
+						$this->scan();
 						
-						$it->rewind();
-						
-						while($it->valid()) {
-							if(!$it->isDot() && strpos($it->getSubPath(), '.git') == false) {
-								$file = $it->current();
-								
-								if($file->getExtension() == 'php') {
-									$content = file_get_contents($it->key());
-									
-									# Simple Quote
-									preg_match_all('/I18N::(__|get)\(\'([^\'\)]+)\'\)/Uis', $content, $matches);
-									
-									if(count($matches[2]) > 0) {
-										foreach($matches[2] AS $text) {
-											if(in_array($text, $found)) {
-												continue;
-											}
-											
-											$found[] 	= $text;
-										}
-									}
-									
-									# Double Quote
-									preg_match_all('/I18N::(__|get)\("([^"\)]+)"\)/Uis', $content, $matches);
-									
-									if(count($matches[2]) > 0) {
-										foreach($matches[2] AS $text) {
-											if(in_array($text, $found)) {
-												continue;
-											}
-											
-											$found[] 	= $text;
-										}
-									}
-									
-									++$scanned;
-								}
-							}
-
-							$it->next();
-						}
-						
-						$contents = '';
-						$contents .= 'msgid ""' . PHP_EOL;
-						$contents .= 'msgstr ""' . PHP_EOL;
-						$contents .= '"Content-Transfer-Encoding: 8bit\n"' . PHP_EOL;
-						$contents .= '"Content-Type: text/plain; charset=UTF-8\n"' . PHP_EOL;
-						$contents .= '"Language: $name\n"' . PHP_EOL;
-						$contents .= '' . PHP_EOL;
-
-						foreach($found AS $text) {
-							$contents .= '' . PHP_EOL;
-							$contents .= sprintf('msgid %s', json_encode($text)) . PHP_EOL;
-							$contents .= 'msgstr ""' . PHP_EOL;
-						}
-						
-						$directory = sprintf('%spanel/languages/', PATH);
-						file_put_contents(sprintf('%s$code.template', $directory), $contents);
-						
-						color('green', 'Scanned ' . $scanned . ' Files, Found ' . count($found) . ' language Strings.');
-						
-						if($_SERVER['argv'][2] == 'add' && $_SERVER['argc'] >= 3) {
+						/*if($_SERVER['argv'][2] == 'add' && $_SERVER['argc'] >= 3) {
 							$code = $_SERVER['argv'][3];
 							file_put_contents(sprintf('%s%s.po', $directory, $code), str_replace('$name', $code, $contents));
 							color('green', 'Language ' . $code . ' was successfully added.');
-						}
+						}*/
 					break;
 				}
 			} else {
@@ -192,11 +125,61 @@
 			
 			color('green', 'Completely found ' . count($strings) . ' Strings');
 			
+			// Fetch old Translations
+			
 			// Make Translation requests
 			
 			// Merge translated strings to $files with translation-array
 			
 			// Build .po files
+			$strings = [];
+			foreach($files['core'] AS $index => $file) {
+				foreach($file['strings'] AS $string) {
+					if(in_array($string, $strings)) {
+						continue;
+					}
+					
+					$strings[] = $string;
+				}
+			}
+			
+			$this->createPO($strings, sprintf('%spanel/languages/', PATH));
+			
+			foreach($files['modules'] AS $index => $modules) {
+				$strings = [];
+				
+				foreach($modules AS $file) {
+					foreach($file['strings'] AS $string) {
+						if(in_array($string, $strings)) {
+							continue;
+						}
+						
+						$strings[] = $string;
+					}
+				}
+				
+				$this->createPO($strings, sprintf('%smodules/%s/languages/', PATH, $index));
+			}
+		}
+		
+		public function createPO($strings, $directory) {
+			$contents = '';
+			$contents .= 'msgid ""' . PHP_EOL;
+			$contents .= 'msgstr ""' . PHP_EOL;
+			$contents .= '"Content-Transfer-Encoding: 8bit\n"' . PHP_EOL;
+			$contents .= '"Content-Type: text/plain; charset=UTF-8\n"' . PHP_EOL;
+			$contents .= '"Language: $name\n"' . PHP_EOL;
+			$contents .= '' . PHP_EOL;
+
+			foreach($strings AS $text) {
+				$contents .= '' . PHP_EOL;
+				$contents .= sprintf('msgid %s', json_encode($text)) . PHP_EOL;
+				$contents .= 'msgstr ""' . PHP_EOL;
+			}
+			
+			file_put_contents(sprintf('%s$code.template', $directory), $contents);
+			
+			color('green', '.po Created with ' . count($strings) . ' Strings, Path: ' . $directory . '$code.template');
 		}
 		
 		public function scanPath($path) {
