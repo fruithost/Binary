@@ -177,6 +177,10 @@
 				$contents .= 'msgstr ""' . PHP_EOL;
 			}
 			
+			if(!file_exists($directory)) {
+				mkdir($directory);
+			}
+			
 			file_put_contents(sprintf('%s$code.template', $directory), $contents);
 			
 			color('green', '.po Created with ' . count($strings) . ' Strings, Path: ' . $directory . '$code.template');
