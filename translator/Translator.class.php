@@ -1,4 +1,6 @@
 <?php
+	namespace fruithost;
+	
 	require_once(PATH . '/panel/libraries/Sepia/PoParser/Catalog/Catalog.php');
 	require_once(PATH . '/panel/libraries/Sepia/PoParser/Catalog/CatalogArray.php');
 	require_once(PATH . '/panel/libraries/Sepia/PoParser/Catalog/Entry.php');
@@ -189,7 +191,7 @@
 		public function scanPath($path) {
 			$scanned	= 0;
 			$files		= [];
-			$it			= new RecursiveIteratorIterator(
+			$it			= new \RecursiveIteratorIterator(
 				new \RecursiveDirectoryIterator($path, \RecursiveDirectoryIterator::SKIP_DOTS),
 				\RecursiveIteratorIterator::SELF_FIRST,
 				\RecursiveIteratorIterator::CATCH_GET_CHILD // Ignore "Permission denied"

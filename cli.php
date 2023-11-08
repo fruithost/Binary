@@ -35,6 +35,7 @@
 	require_once(PATH . '/panel/libraries/skoerfgen/ACMECert.php');
 
 	use fruithost\Database;
+	use fruithost\Trsnalator;
 	
 	define('DAEMON', true);
 	define('TAB', "\t");
