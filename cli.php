@@ -405,7 +405,7 @@
 				$path = sprintf('%s%s%s%s%s', PATH, DS, 'temp', DS, 'install_' . $name. '.package');
 				file_put_contents($path, $content);
 				
-				$zip = new ZipArchive;
+				$zip = new \ZipArchive;
 				
 				if($zip->open($path) !== TRUE) {
 					color('orange', 'Broken package.');
