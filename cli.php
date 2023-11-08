@@ -1,4 +1,6 @@
 <?php
+	namespace fruithost;
+	
 	if(!defined('PATH')) {
 		define('PATH', sprintf('%s/', dirname(dirname(__FILE__))));
 	}
@@ -15,15 +17,26 @@
 		require(PATH . '/.config.php');
 	}
 	
-	require_once(PATH . '/bin/translator/Translator.class.php');
+	class I18N {
+		public static function __($string) {
+			return $string;
+		}
+		
+		public static function get($string) : string {
+			return $string;
+		}
+	}
+	
 	require_once(PATH . '/panel/classes/Session.class.php');
-	require_once(PATH . '/panel/classes/Auth.class.php');
 	require_once(PATH . '/panel/classes/Database.class.php');
 	require_once(PATH . '/panel/classes/DatabaseFactory.class.php');
+	require_once(PATH . '/bin/translator/Translator.class.php');
 	require_once(PATH . '/panel/classes/Encryption.class.php');
+	require_once(PATH . '/panel/libraries/skoerfgen/ACMECert.php');
 
 	use fruithost\Database;
 	
+	define('DAEMON', true);
 	define('TAB', "\t");
 	define('BS', '\\');
 	define('DS', DIRECTORY_SEPARATOR);
