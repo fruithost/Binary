@@ -1,5 +1,5 @@
 # Binary
-This is the default backend for **fruithost**.
+This is the default backend for ![](https://raw.githubusercontent.com/fruithost/Documentation/main/Images/LOGO_TEXT.png) **fruithost**.
 
 **Running a server has never been so easy!**
 
