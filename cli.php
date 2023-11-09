@@ -2,8 +2,8 @@
 	namespace fruithost;
 	
 	define('DAEMON', true);
-	require_once('loader.php');
-	require_once(dirname(PATH) . '/bin/translator/Translator.class.php');
+	require_once(dirname(dirname(__FILE__)) . '/panel/classes/Loader.class.php');
+	require_once(dirname(__FILE__) . '/translator/Translator.class.php');
 	
 	use fruithost\Database;
 	use fruithost\Trsnalator;
@@ -404,8 +404,8 @@
 							} else {
 								color('green', '+ Run ' . $info->getFileName());
 								$php = new PHP();
-								$php->setPath(dirname(PATH));
-								$php->execute('/bin/loader.php', [
+								$php->setPath(PATH);
+								$php->execute('/classes/Loader.class.php', [
 									'DAEMON'			=> true,
 									'REQUEST_URI'		=> '/',
 									'MODULE'			=> sprintf('%s/setup/install.php', $module)
@@ -456,8 +456,8 @@
 						} else {
 							color('green', '+ Run ' . $info->getFileName());
 							$php = new PHP();
-							$php->setPath(dirname(PATH));
-							$php->execute('/bin/loader.php', [
+							$php->setPath(PATH);
+							$php->execute('/classes/Loader.class.php', [
 								'DAEMON'			=> true,
 								'REQUEST_URI'		=> '/',
 								'MODULE'			=> sprintf('%s/setup/install.php', $module)
@@ -714,7 +714,7 @@
 			
 			// @ToDo Delete Users
 			$deleted_users = [];
-			foreach(Database::fetch('SELECT *, \'*********\' AS `password` FROM `' . DATABASE_PREFIX . 'users` WHERE `deleted`=\'YES\'') AS $user) {
+			foreach(Database::fetch('SELECT *, \'[*** PROTECTED ***]\' AS `password` FROM `' . DATABASE_PREFIX . 'users` WHERE `deleted`=\'YES\'') AS $user) {
 				$deleted_users[] = (object) [
 					'id'		=> $user->id,
 					'username'	=> $user->username,
@@ -767,8 +767,8 @@
 							} else {
 								color('green', '+ Run Uninstall-Script ' . $info->getFileName());
 								$php = new PHP();
-								$php->setPath(dirname(PATH));
-								$php->execute('/bin/loader.php', [
+								$php->setPath(PATH);
+								$php->execute('/classes/Loader.class.php', [
 									'DAEMON'			=> true,
 									'REQUEST_URI'		=> '/',
 									'MODULE'			=> sprintf('%s/setup/deinstall.php', $module)
@@ -812,8 +812,8 @@
 							} else {
 								color('green', '+ Run ' . $info->getFileName());
 								$php = new PHP();
-								$php->setPath(dirname(PATH));
-								$php->execute('/bin/loader.php', [
+								$php->setPath(PATH);
+								$php->execute('/classes/Loader.class.php', [
 									'DAEMON'			=> true,
 									'REQUEST_URI'		=> '/',
 									'MODULE'			=> sprintf('%s/daemon.php', $module)
