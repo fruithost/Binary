@@ -10,13 +10,16 @@
 		error_reporting(E_ALL);
 	}
 	
-	define('BS', '\\');
-	define('DS', DIRECTORY_SEPARATOR);
+	define('TAB',	"\t");
+	define('BS',	'\\');
+	define('DS',	DIRECTORY_SEPARATOR);
 	
 	class Loader {
 		public function __construct() {
-			if(isset($_SERVER['DAEMON']) && !empty($_SERVER['DAEMON'])) {
-				define('DAEMON', true);
+			if(defined('DAEMON') && DAEMON || isset($_SERVER['DAEMON']) && !empty($_SERVER['DAEMON'])) {
+				if(!defined('DAEMON')) {
+					define('DAEMON', true);
+				}
 				
 				if(!defined('PATH')) {
 					define('PATH', sprintf('%s/panel/', dirname(dirname(__FILE__))));
@@ -27,31 +30,51 @@
 				}
 			}
 			
-			$this->require('libraries/skoerfgen/ACMECert');
-			
-			if(is_readable('.security.php')) {
+			if($this->readable('.security')) {
 				$this->require('.security');
-			} else if(is_readable('../.security.php')) {
+			} else if($this->readable('../.security')) {
 				$this->require('../.security');
+			} else {
+				if(defined('DAEMON') && DAEMON) {
+					print "\033[31;31m";
+				}
+				
+				print 'ERROR loading .security ' . PHP_EOL;
+
+				if(defined('DAEMON') && DAEMON) {
+					print "\033[39m";
+				}
 			}
 			
-			if(is_readable('.mail.php')) {
+			if($this->readable('.mail')) {
 				$this->require('.mail');
-			} else if(is_readable('../.mail.php')) {
+			} else if($this->readable('../.mail')) {
 				$this->require('../.mail');
 			}
 			
-			if(is_readable('.config.php')) {
+			if($this->readable('.config')) {
 				$this->require('.config');
-			} else if(is_readable('../.config.php')) {
+			} else if($this->readable('../.config')) {
 				$this->require('../.config');
+			} else {
+				if(defined('DAEMON') && DAEMON) {
+					print "\033[31;31m";
+				}
+				
+				print 'ERROR loading .config.php ' . PHP_EOL;
+				
+				if(defined('DAEMON') && DAEMON) {
+					print "\033[39m";
+				}
 			}
-			
+						
 			spl_autoload_register([ $this, 'load' ]);
 			
 			// @ToDo Hash verify?
 			if(isset($_SERVER['MODULE']) && !empty($_SERVER['MODULE'])) {
 				if(file_exists($_SERVER['MODULE'])) {
+					$this->require('libraries/skoerfgen/ACMECert');
+					
 					if(is_readable($_SERVER['MODULE'])) {
 						require_once($_SERVER['MODULE']);
 					} else {
@@ -63,6 +86,16 @@
 			}
 		}
 	
+		private function readable(string $file) : bool {
+			$path = sprintf('%s%s.php', PATH, $file);
+			
+			if(!file_exists($path)) {
+				return false;
+			}
+			
+			return is_readable($path);
+		}
+		
 		private function require(string $file) {
 			$path = sprintf('%s%s.php', PATH, $file);
 			
@@ -71,12 +104,11 @@
 					print "\033[31;31m";
 				}
 				
-				print 'ERROR loading: ' . $path;
+				print 'ERROR loading: ' . $path . PHP_EOL;
 				
 				if(defined('DAEMON') && DAEMON) {
 					print "\033[39m";
 				}
-				
 				return;
 			}
 			
@@ -102,7 +134,8 @@
 					if(defined('DAEMON') && DAEMON) {
 						print "\033[31;31m";
 					}
-						print 'Error accessing Library: ' . $path . PHP_EOL;
+					
+					print 'Error accessing Library: ' . $path . PHP_EOL;
 				
 					if(defined('DAEMON') && DAEMON) {
 						print "\033[39m";

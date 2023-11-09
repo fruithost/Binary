@@ -1,15 +1,6 @@
 <?php
 	namespace fruithost;
 	
-	require_once(PATH . '/panel/libraries/Sepia/PoParser/Catalog/Catalog.php');
-	require_once(PATH . '/panel/libraries/Sepia/PoParser/Catalog/CatalogArray.php');
-	require_once(PATH . '/panel/libraries/Sepia/PoParser/Catalog/Entry.php');
-	require_once(PATH . '/panel/libraries/Sepia/PoParser/Catalog/EntryFactory.php');
-	require_once(PATH . '/panel/libraries/Sepia/PoParser/Catalog/Header.php');
-	require_once(PATH . '/panel/libraries/Sepia/PoParser/Parser.php');
-	require_once(PATH . '/panel/libraries/Sepia/PoParser/SourceHandler/SourceHandler.php');
-	require_once(PATH . '/panel/libraries/Sepia/PoParser/SourceHandler/FileSystem.php');
-	
 	use \Sepia\PoParser\SourceHandler\FileSystem;
 	use \Sepia\PoParser\Parser;
 	

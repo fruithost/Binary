@@ -1,49 +1,13 @@
 <?php
 	namespace fruithost;
 	
-	if(!defined('PATH')) {
-		define('PATH', sprintf('%s/', dirname(dirname(__FILE__))));
-	}
+	define('DAEMON', true);
+	require_once('loader.php');
+	require_once(dirname(PATH) . '/bin/translator/Translator.class.php');
 	
-	if(is_readable(PATH . '/panel/.security.php')) {
-		require(PATH . '/panel/.security.php');
-	} else if(is_readable(PATH . '/.security.php')) {
-		require(PATH . '/.security.php');
-	}
-	
-	if(is_readable(PATH . '/panel/.config.php')) {
-		require(PATH . '/panel/.config.php');
-	} else if(is_readable(PATH . '/.config.php')) {
-		require(PATH . '/.config.php');
-	}
-	
-	class I18N {
-		public static function __($string) {
-			return $string;
-		}
-		
-		public static function get($string) : string {
-			return $string;
-		}
-	}
-	
-	require_once(PATH . '/panel/classes/Session.class.php');
-	require_once(PATH . '/panel/classes/Database.class.php');
-	require_once(PATH . '/panel/classes/DatabaseFactory.class.php');
-	require_once(PATH . '/bin/translator/Translator.class.php');
-	require_once(PATH . '/panel/classes/Encryption.class.php');
-	require_once(PATH . '/panel/classes/Utils.class.php');
-	require_once(PATH . '/panel/classes/PHP.class.php');
-	require_once(PATH . '/panel/libraries/skoerfgen/ACMECert.php');
-
 	use fruithost\Database;
 	use fruithost\Trsnalator;
-	
-	define('DAEMON', true);
-	define('TAB', "\t");
-	define('BS', '\\');
-	define('DS', DIRECTORY_SEPARATOR);
-	
+		
 	function help() {
 		color('yellow', 'Usage:');
 		color(null, 'fruithost', false);
@@ -146,8 +110,8 @@
 	
 	function version() {
 		$version = (object) [
-			'panel'		=> file_get_contents(sprintf('%s%s%s%s%s', PATH, DS, 'panel', DS, '.version')),
-			'binary'	=> file_get_contents(sprintf('%s%s%s%s%s', PATH, DS, 'bin', DS, '.version'))
+			'panel'		=> file_get_contents(sprintf('%s%s%s%s%s', dirname(PATH), DS, 'panel', DS, '.version')),
+			'binary'	=> file_get_contents(sprintf('%s%s%s%s%s', dirname(PATH), DS, 'bin', DS, '.version'))
 		];
 		
 		color('yellow', 'fruithost', false);
@@ -273,18 +237,18 @@
 				'config',
 				'panel',
 				'placeholder',
-				'Installers',
+				'installer',
 				'themes',
 				'modules'
 			] AS $directory) {
-				if(!file_exists(sprintf('%s%s/.git', PATH, $directory))) {
+				if(!file_exists(sprintf('%s/%s/.git', dirname(PATH), $directory))) {
 					continue;
 				}
 				
-				$result = shell_exec(sprintf('cd %s%s/ && git status -s', PATH, $directory));
+				$result = shell_exec(sprintf('cd %s/%s/ && git status -s', dirname(PATH), $directory));
 				
 				color('yellow', 'Tracked Repo: ', false);
-				color('blue', sprintf('%s%s/', PATH, $directory));
+				color('blue', sprintf('%s/%s/', dirname(PATH), $directory));
 				
 				if(empty($result)) {
 					color('grey', "   - No changes -");
@@ -404,7 +368,7 @@
 					return;
 				}
 				
-				$path = sprintf('%s%s%s%s%s', PATH, DS, 'temp', DS, 'install_' . $name. '.package');
+				$path = sprintf('%s%s%s%s%s', dirname(PATH), DS, 'temp', DS, 'install_' . $name. '.package');
 				file_put_contents($path, $content);
 				
 				$zip = new \ZipArchive;
@@ -413,20 +377,42 @@
 					color('orange', 'Broken package.');
 					return;
 				} else {
-					if(!$zip->extractTo(sprintf('%s%s%s%s', PATH, DS, 'modules', DS))) {
+					if(!$zip->extractTo(sprintf('%s%s%s%s', dirname(PATH), DS, 'modules', DS))) {
 						print "\033[31;31mCan't upgrade: " . $zip->getStatusString() . "\033[39m" . PHP_EOL;
 						return;
 					}
 					
 					$zip->close();
 					
-					$module_path = sprintf('%s%s%s%s%s', PATH, DS, 'modules', DS, $name);
+					$module_path = sprintf('%s%s%s%s%s', dirname(PATH), DS, 'modules', DS, $name);
 					
 					if(file_exists(sprintf('%s/setup/install.php', $module_path))) {
+						$root	= false;
+						$string	= '#!fruithost:permission:root';
 						color('green', '+ Run Install-Script');
 						
 						try {
-							require_once(sprintf('%s/setup/install.php', $module_path));
+							$handler	= fopen(sprintf('%s/setup/install.php', $module), 'r');
+							$root		= (fread($handler, strlen($string)) === $string);
+							fclose($handler);
+
+							if($root) {
+								color('green', '+ Run ' . $info->getFileName(), false);
+								color('orange', ' [executed as ROOT]');
+								
+								require_once(sprintf('%s/setup/install.php', $module));
+							} else {
+								color('green', '+ Run ' . $info->getFileName());
+								$php = new PHP();
+								$php->setPath(dirname(PATH));
+								$php->execute('/bin/loader.php', [
+									'DAEMON'			=> true,
+									'REQUEST_URI'		=> '/',
+									'MODULE'			=> sprintf('%s/setup/install.php', $module)
+								]);
+								
+								print $php->getBody();
+							}
 						} catch(Exception $e) {
 							color('red', $e->getMessage());
 							color('orange', $e->getTraceAsString());
@@ -450,13 +436,35 @@
 					@unlink($path);
 				}
 			} else {
-				$module_path = sprintf('%s%s%s%s%s', PATH, DS, 'modules', DS, $name);
+				$module_path	= sprintf('%s%s%s%s%s', dirname(PATH), DS, 'modules', DS, $name);
+				$root			= false;
+				$string			= '#!fruithost:permission:root';
 					
 				if(file_exists(sprintf('%s/setup/install.php', $module_path))) {
 					color('green', '+ Run Install-Script');
 					
 					try {
-						require_once(sprintf('%s/setup/install.php', $module_path));
+						$handler	= fopen(sprintf('%s/setup/install.php', $module), 'r');
+						$root		= (fread($handler, strlen($string)) === $string);
+						fclose($handler);
+
+						if($root) {
+							color('green', '+ Run ' . $info->getFileName(), false);
+							color('orange', ' [executed as ROOT]');
+							
+							require_once(sprintf('%s/setup/install.php', $module));
+						} else {
+							color('green', '+ Run ' . $info->getFileName());
+							$php = new PHP();
+							$php->setPath(dirname(PATH));
+							$php->execute('/bin/loader.php', [
+								'DAEMON'			=> true,
+								'REQUEST_URI'		=> '/',
+								'MODULE'			=> sprintf('%s/setup/install.php', $module)
+							]);
+							
+							print $php->getBody();
+						}
 					} catch(Exception $e) {
 						color('red', $e->getMessage());
 						color('orange', $e->getTraceAsString());
@@ -466,7 +474,7 @@
 		break;
 		case 'enable':
 			$installed		= [];
-			$path			= sprintf('%s%s%s', PATH, DS, 'modules');
+			$path			= sprintf('%s%s%s', dirname(PATH), DS, 'modules');
 			$enabled		= [];
 			
 			foreach(Database::fetch('SELECT * FROM `' . DATABASE_PREFIX . 'modules`') AS $module) {
@@ -554,7 +562,7 @@
 		break;
 		case 'disable':
 			$installed		= [];
-			$path			= sprintf('%s%s%s', PATH, DS, 'modules');
+			$path			= sprintf('%s%s%s', dirname(PATH), DS, 'modules');
 			$enabled		= [];
 			
 			foreach(Database::fetch('SELECT * FROM `' . DATABASE_PREFIX . 'modules`') AS $module) {
@@ -651,7 +659,8 @@
 				'.git',
 				'README.md'
 			];
-			$path		= sprintf('%s%s%s', PATH, DS, 'modules');
+			
+			$path		= sprintf('%s%s%s', dirname(PATH), DS, 'modules');
 			
 			color('yellow', 'Running Daemon...');
 			
@@ -725,6 +734,10 @@
 				$deinstall[] = $entry->name;
 			}
 			
+			color('blue', 'Call Modules...');
+			color('white', sprintf("Enabled Modules: %d", count($enabled)));
+			color('white', sprintf("Modules will be deinstalled: %d", count($deinstall)));
+			
 			foreach(new \DirectoryIterator($path) AS $info) {
 				if($info->isDot()) {
 					continue;
@@ -738,10 +751,31 @@
 					color('red', '~ DEINSTALL ' . $info->getFileName());
 					
 					if(file_exists(sprintf('%s/setup/deinstall.php', $module))) {
-						color('green', '+ Run Uninstall-Script ' . $info->getFileName());
+						$root	= false;
+						$string	= '#!fruithost:permission:root';
 						
 						try {
-							require_once(sprintf('%s/setup/deinstall.php', $module));
+							$handler	= fopen(sprintf('%s/setup/deinstall.php', $module), 'r');
+							$root		= (fread($handler, strlen($string)) === $string);
+							fclose($handler);
+
+							if($root) {
+								color('green', '+ Run Uninstall-Script ' . $info->getFileName(), false);
+								color('orange', ' [executed as ROOT]');
+								
+								require_once(sprintf('%s/setup/deinstall.php', $module));
+							} else {
+								color('green', '+ Run Uninstall-Script ' . $info->getFileName());
+								$php = new PHP();
+								$php->setPath(dirname(PATH));
+								$php->execute('/bin/loader.php', [
+									'DAEMON'			=> true,
+									'REQUEST_URI'		=> '/',
+									'MODULE'			=> sprintf('%s/setup/deinstall.php', $module)
+								]);
+								
+								print $php->getBody();
+							}
 						} catch(Exception $e) {
 							color('red', $e->getMessage());
 							color('orange', $e->getTraceAsString());
@@ -773,16 +807,18 @@
 							if($root) {
 								color('green', '+ Run ' . $info->getFileName(), false);
 								color('orange', ' [executed as ROOT]');
+								
 								require_once(sprintf('%s/daemon.php', $module));
 							} else {
 								color('green', '+ Run ' . $info->getFileName());
 								$php = new PHP();
-								$php->setPath(PATH);
+								$php->setPath(dirname(PATH));
 								$php->execute('/bin/loader.php', [
 									'DAEMON'			=> true,
 									'REQUEST_URI'		=> '/',
 									'MODULE'			=> sprintf('%s/daemon.php', $module)
 								]);
+								
 								print $php->getBody();
 							}
 						} catch(Exception $e) {
@@ -819,6 +855,7 @@
 			
 			setSettings('DAEMON_TIME_END',		date('Y-m-d H:i:s', time()));
 			setSettings('DAEMON_RUNNING_END',	microtime(true));
+			color('green', 'Done.');
 			
 			// Rebooting
 			$rebooting = getSettings('REBOOT', null);
@@ -924,7 +961,7 @@
 				color('orange', 'No repositorys for update available.');
 			} else {
 				$installed	= [];
-				$path		= sprintf('%s%s%s', PATH, DS, 'modules');
+				$path		= sprintf('%s%s%s', dirname(PATH), DS, 'modules');
 				
 				foreach(new \DirectoryIterator($path) AS $info) {
 					if($info->isDot()) {
@@ -1034,7 +1071,7 @@
 				}
 			}
 			
-			file_put_contents(sprintf('%s%s%s%s%s', PATH, DS, 'temp', DS, 'update.list'), json_encode($updateable));
+			file_put_contents(sprintf('%s%s%s%s%s', dirname(PATH), DS, 'temp', DS, 'update.list'), json_encode($updateable));
 			line();
 			color('green', 'Found ' . count($updateable) . ' related Update' . (count($updateable) === 1 ? '' : 's'));
 			
@@ -1053,7 +1090,7 @@
 			// @ToDo check Core
 		break;
 		case 'upgrade':
-			$path = sprintf('%s%s%s%s%s', PATH, DS, 'temp', DS, 'update.list');
+			$path = sprintf('%s%s%s%s%s', dirname(PATH), DS, 'temp', DS, 'update.list');
 			
 			if(!file_exists($path)) {
 				color(null, 'No updates available.');
@@ -1135,7 +1172,7 @@
 						return;
 					}
 					
-					$path = sprintf('%s%s%s%s%s', PATH, DS, 'temp', DS, 'update.package');
+					$path = sprintf('%s%s%s%s%s', dirname(PATH), DS, 'temp', DS, 'update.package');
 					file_put_contents($path, $content);
 					
 					$zip = new ZipArchive;
@@ -1144,7 +1181,7 @@
 						color('orange', 'Broken package.');
 						return;
 					} else {
-						if(!$zip->extractTo(sprintf('%s%s%s%s', PATH, DS, 'modules', DS))) {
+						if(!$zip->extractTo(sprintf('%s%s%s%s', dirname(PATH), DS, 'modules', DS))) {
 							print "\033[31;31mCan't upgrade: " . $zip->getStatusString() . "\033[39m" . PHP_EOL;
 							return;
 						}
