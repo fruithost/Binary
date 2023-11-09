@@ -32,6 +32,8 @@
 	require_once(PATH . '/panel/classes/DatabaseFactory.class.php');
 	require_once(PATH . '/bin/translator/Translator.class.php');
 	require_once(PATH . '/panel/classes/Encryption.class.php');
+	require_once(PATH . '/panel/classes/Utils.class.php');
+	require_once(PATH . '/panel/classes/PHP.class.php');
 	require_once(PATH . '/panel/libraries/skoerfgen/ACMECert.php');
 
 	use fruithost\Database;
@@ -686,7 +688,6 @@
 				@chmod(sprintf('%s%s', LOG_PATH, $info->getFilename()), 0644);
 			}
 			
-			
 			color('white', 'Fixing User-Paths');
 			foreach(Database::fetch('SELECT `username` FROM `' . DATABASE_PREFIX . 'users` WHERE `deleted`=\'NO\'') AS $user) {
 				if(!file_exists(sprintf('%s%s', HOST_PATH, $user->username))) {
@@ -761,10 +762,29 @@
 					}
 				} else if(in_array(basename($module), $enabled)) {
 					if(file_exists(sprintf('%s/daemon.php', $module))) {
-						color('green', '+ Run ' . $info->getFileName());
+						$root	= false;
+						$string	= '#!fruithost:permission:root';
 						
 						try {
-							require_once(sprintf('%s/daemon.php', $module));
+							$handler	= fopen(sprintf('%s/daemon.php', $module), 'r');
+							$root		= (fread($handler, strlen($string)) === $string);
+							fclose($handler);
+
+							if($root) {
+								color('green', '+ Run ' . $info->getFileName(), false);
+								color('orange', ' [executed as ROOT]');
+								require_once(sprintf('%s/daemon.php', $module));
+							} else {
+								color('green', '+ Run ' . $info->getFileName());
+								$php = new PHP();
+								$php->setPath(PATH);
+								$php->execute('/bin/loader.php', [
+									'DAEMON'			=> true,
+									'REQUEST_URI'		=> '/',
+									'MODULE'			=> sprintf('%s/daemon.php', $module)
+								]);
+								print $php->getBody();
+							}
 						} catch(Exception $e) {
 							color('red', $e->getMessage());
 							color('orange', $e->getTraceAsString());
