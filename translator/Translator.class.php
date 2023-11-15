@@ -36,7 +36,7 @@
 		
 		public function list() {
 			$languages = [];
-			$directory = sprintf('%spanel/languages/', PATH);
+			$directory = sprintf('%s/languages/', PATH);
 			
 			foreach(new \DirectoryIterator($directory) AS $info) {
 				if($info->isDot()) {
@@ -77,16 +77,16 @@
 		public function scan() {
 			$count	= 0;
 			$files  = [
-				'core'		=> $this->scanPath(sprintf('%spanel', PATH)),
+				'core'		=> $this->scanPath(dirname(PATH)),
 				'modules'	=> []
 			];
 			
-			foreach(new \DirectoryIterator(sprintf('%smodules', PATH)) AS $info) {
+			foreach(new \DirectoryIterator(sprintf('%s/modules', dirname(PATH))) AS $info) {
 				if($info->isDot()) {
 					continue;
 				}
 				
-				$files['modules'][$info->getFilename()] = $this->scanPath(sprintf('%smodules%s%s', PATH, DS, $info->getFilename()));
+				$files['modules'][$info->getFilename()] = $this->scanPath(sprintf('%s/modules/%s%s', dirname(PATH), DS, $info->getFilename()));
 				$count += count($files['modules'][$info->getFilename()]);
 			}
 			
@@ -136,7 +136,7 @@
 				}
 			}
 			
-			$this->createPO($strings, sprintf('%spanel/languages/', PATH));
+			$this->createPO($strings, sprintf('%s/languages/', PATH));
 			
 			foreach($files['modules'] AS $index => $modules) {
 				$strings = [];
@@ -151,7 +151,7 @@
 					}
 				}
 				
-				$this->createPO($strings, sprintf('%smodules/%s/languages/', PATH, $index));
+				$this->createPO($strings, sprintf('%s/modules/%s/languages/', dirname(PATH), $index));
 			}
 		}
 		
