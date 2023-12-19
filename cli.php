@@ -344,7 +344,7 @@
 			}
 		}
 		
-		if(!$found || empty($repository)) {
+		if(!$force && (!$found || empty($repository))) {
 			color('red', sprintf('The module %s was not found!', $name));
 			return;
 		}
@@ -447,23 +447,23 @@
 				color('green', '+ Run Install-Script');
 				
 				try {
-					$handler	= fopen(sprintf('%s/setup/install.php', $module), 'r');
+					$handler	= fopen(sprintf('%s/setup/install.php', $module_path), 'r');
 					$root		= (fread($handler, strlen($string)) === $string);
 					fclose($handler);
 
 					if($root) {
-						color('green', '+ Run ' . $info->getFileName(), false);
+						color('green', '+ Run ' . $name, false);
 						color('orange', ' [executed as ROOT]');
 						
-						require_once(sprintf('%s/setup/install.php', $module));
+						require_once(sprintf('%s/setup/install.php', $module_path));
 					} else {
-						color('green', '+ Run ' . $info->getFileName());
+						color('green', '+ Run ' . $name);
 						$php = new PHP();
 						$php->setPath(PATH);
 						$php->execute('/classes/Loader.class.php', [
 							'DAEMON'			=> true,
 							'REQUEST_URI'		=> '/',
-							'MODULE'			=> sprintf('%s/setup/install.php', $module)
+							'MODULE'			=> sprintf('%s/setup/install.php', $module_path)
 						]);
 						
 						print $php->getBody();
