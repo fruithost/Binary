@@ -306,7 +306,9 @@
 	}
 	
 	function module_install_local($name) {
-		$force		= in_array('--force', $_SERVER['argv']) || in_array('-f', $_SERVER['argv']);
+		$force			= in_array('--force', $_SERVER['argv']) || in_array('-f', $_SERVER['argv']);
+		$found			= false;
+		$module_path	= sprintf('%s%s%s%s%s', dirname(PATH), DS, 'modules', DS, $name);
 		
 		if(Database::exists('SELECT `id` FROM `' . DATABASE_PREFIX . 'modules` WHERE `name`=:name LIMIT 1', [
 			'name'			=> $name
@@ -315,6 +317,11 @@
 			return;
 		} else if($force) {
 			color('orange', 'Force installing...');
+			$found = true;
+		}
+		
+		if(!$found) {
+			$found = file_exists(sprintf('%s/module.package', $module_path));
 		}
 		
 		if(!$force && (!$found || empty($repository))) {
@@ -322,8 +329,6 @@
 			return;
 		}
 		
-		$module_path = sprintf('%s%s%s%s%s', dirname(PATH), DS, 'modules', DS, $name);
-				
 		if(file_exists(sprintf('%s/setup/install.php', $module_path))) {
 			$root	= false;
 			$string	= '#!fruithost:permission:root';
