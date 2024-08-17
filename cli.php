@@ -272,6 +272,107 @@
 		}
 	}
 	
+	function modules_install() {
+		$force	= in_array('--force', $_SERVER['argv']) || in_array('-f', $_SERVER['argv']);
+		$path	= sprintf('%s%s%s%s', dirname(PATH), DS, 'modules', DS);
+		
+		color('orange', 'Installing all possible modules,...');	
+		
+		foreach(scandir($path) AS $module) {
+			if(in_array($module, [
+				'.',
+				'..',
+				'modules.list',
+				'modules.packages',
+				'.currently_in_development',
+				'.git',
+				'.gitignore',
+				'LICENSE',
+				'README.md',
+				'.github'
+			])) {
+				continue;
+			}
+			
+			// Is valid Module?
+			if(file_exists(sprintf('%s/%s/module.package', $path, $module))) {
+				color('grey', 'Installing:');
+				color('green', $module);
+				
+				module_install_local($module);
+				module_enable($module);
+			}
+		}
+	}
+	
+	function module_install_local($name) {
+		$force		= in_array('--force', $_SERVER['argv']) || in_array('-f', $_SERVER['argv']);
+		
+		if(Database::exists('SELECT `id` FROM `' . DATABASE_PREFIX . 'modules` WHERE `name`=:name LIMIT 1', [
+			'name'			=> $name
+		]) && !$force) {
+			color('red', 'Module is already installed!');
+			return;
+		} else if($force) {
+			color('orange', 'Force installing...');
+		}
+		
+		if(!$force && (!$found || empty($repository))) {
+			color('red', sprintf('The module %s was not found!', $name));
+			return;
+		}
+		
+		$module_path = sprintf('%s%s%s%s%s', dirname(PATH), DS, 'modules', DS, $name);
+				
+		if(file_exists(sprintf('%s/setup/install.php', $module_path))) {
+			$root	= false;
+			$string	= '#!fruithost:permission:root';
+			color('green', '+ Run Install-Script');
+			
+			try {
+				$handler	= fopen(sprintf('%s/setup/install.php', $module_path), 'r');
+				$root		= (fread($handler, strlen($string)) === $string);
+				fclose($handler);
+
+				if($root) {
+					color('green', '+ Install ' . $name, false);
+					color('orange', ' [executed as ROOT]');
+					
+					require_once(sprintf('%s/setup/install.php', $module_path));
+				} else {
+					color('green', '+ Install ' . $name);
+					$php = new PHP();
+					$php->setPath(PATH);
+					$php->execute('/classes/System/Loader.class.php', [
+						'DAEMON'			=> true,
+						'REQUEST_URI'		=> '/',
+						'MODULE'			=> sprintf('%s/setup/install.php', $module_path)
+					]);
+					
+					if(preg_match('/(File Not Found|404 Not Found|500 Internal Server Error)/', $php->getHeader())) {
+						throw new \Exception('Installscript not found: ' . sprintf('%s/setup/install.php', $module_path) . PHP_EOL . $php->getHeader());
+					}
+					
+					print $php->getBody();
+				}
+				
+				Database::insert(DATABASE_PREFIX . 'modules', [
+					'id'			=> NULL,
+					'name'			=> $name,
+					'state'			=> 'DISABLED',
+					'time_enabled'	=> NULL,
+					'time_updated'	=> NULL,
+					'time_deleted'	=> NULL
+				]);
+				
+				color('green', 'The module was successfully installed.');
+			} catch(\Exception $e) {
+				color('red', $e->getMessage());
+				color('orange', $e->getTraceAsString());
+			}
+		}
+	}
+	
 	function module_install() {
 		if($_SERVER['argc'] === 2) {
 			$repositorys = Database::fetch('SELECT * FROM `' . DATABASE_PREFIX . 'repositorys`');
@@ -311,6 +412,11 @@
 		$found		= false;
 		$repository = NULL;
 		$force		= in_array('--force', $_SERVER['argv']) || in_array('-f', $_SERVER['argv']);
+		
+		if($name == '@') {
+			modules_install();
+			return;
+		}
 		
 		if($_SERVER['argv'][1] == 'install') {
 			if(Database::exists('SELECT `id` FROM `' . DATABASE_PREFIX . 'modules` WHERE `name`=:name LIMIT 1', [
@@ -476,10 +582,14 @@
 		}
 	}
 	
-	function module_enable() {
+	function module_enable($module = NULL) {
 		$installed		= [];
 		$path			= sprintf('%s%s%s', dirname(PATH), DS, 'modules');
 		$enabled		= [];
+		
+		if(!empty($module)) {
+			$_SERVER['argv'][2] = $module;
+		}
 		
 		foreach(Database::fetch('SELECT * FROM `' . DATABASE_PREFIX . 'modules`') AS $module) {
 			$enabled[$module->name] = $module;
