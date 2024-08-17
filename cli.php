@@ -448,9 +448,20 @@
 			
 			$modules	= explode(PHP_EOL, $list);
 			
-			if(in_array($name, array_values($modules))) {
-				$found		= true;
-				$repository	= $entry->url;
+			foreach($modules AS $index => $module) {
+				if(empty(trim($module))) {
+					continue;
+				}
+				
+				$module = trim($module);
+				if($name == $module) {
+					$found		= true;
+					$repository	= $entry->url;
+					break;
+				}
+			}
+			
+			if($found) {
 				break;
 			}
 		}
@@ -487,11 +498,11 @@
 				color('orange', 'Broken package.');
 				return;
 			} else {
-				if(!$zip->extractTo(sprintf('%s%s%s%s', dirname(PATH), DS, 'modules', DS))) {
+				/*if(!$zip->extractTo(sprintf('%s%s%s%s', dirname(PATH), DS, 'modules', DS))) {
 					print "\033[31;31mCan't upgrade: " . $zip->getStatusString() . "\033[39m" . PHP_EOL;
 					return;
 				}
-				
+				*/
 				$zip->close();
 				
 				$module_path = sprintf('%s%s%s%s%s', dirname(PATH), DS, 'modules', DS, $name);
