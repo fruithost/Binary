@@ -404,8 +404,17 @@
 					color('grey', $entry->url);
 					
 					$modules	= explode(PHP_EOL, $list);
+					$separator	= "\033[39m, \033[33m";
 					
-					color('yellow', implode(', ', array_values($modules)));
+					foreach($modules AS $index => $module) {
+						if(empty(trim($module))) {
+							continue;
+						}
+						
+						$modules[$index] = trim($module);
+					}
+					
+					color('yellow', rtrim(implode($separator, array_values($modules)), $separator));
 				}
 			}
 			
