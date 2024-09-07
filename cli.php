@@ -812,6 +812,9 @@
 		}
 		@chmod(sprintf('%s', HOST_PATH), 0777);
 		
+		@chgrp(sprintf('%s/panel', HOST_PATH), 33);
+		@chmod(sprintf('%s/panel', HOST_PATH), 0775);
+		
 		if(!file_exists(sprintf('%s/modules', dirname(PATH)))) {
 			@mkdir(sprintf('%s/modules', dirname(PATH)));
 			color('white', sprintf("\t- %s/modules", dirname(PATH)));
@@ -822,14 +825,14 @@
 			@mkdir(LOG_PATH);
 			color('white', sprintf("\t- %s", LOG_PATH));
 		}
-		@chmod(LOG_PATH, 0775);
+		@chmod(LOG_PATH, 0777);
 		
 		foreach(new \DirectoryIterator(LOG_PATH) AS $info) {
 			if($info->isDot()) {
 				continue;
 			}
 			
-			@chmod(sprintf('%s%s', LOG_PATH, $info->getFilename()), 0644);
+			@chmod(sprintf('%s%s', LOG_PATH, $info->getFilename()), 0777);
 		}
 		
 		color('white', 'Fixing User-Paths');
