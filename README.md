@@ -38,7 +38,7 @@ Feel free to help us with the developing!
 [BANK]: https://github.com/fruithost/Documentation/blob/main/Images/donation_bank.png?raw=true
 
 # Screenshot
-![Help](https://raw.githubusercontent.com/fruithost/Binary/master/screenshots/help.png)
+![Help](https://raw.githubusercontent.com/fruithost/Documentation/refs/heads/main/Images/Binary/help.png)
 
 ## Troubleshooting
 If the binary not callable, you must manual add the script to the global scope:
@@ -72,13 +72,13 @@ All commands will be inserted as `fruithost <command> <arg1> <arg2> <arg...>`.
       <td><code>fruithost</code></td>
       <td colspan="3"><code>version</code></td>
       <td>Show the current version</td>
-      <td><a href="https://raw.githubusercontent.com/fruithost/Binary/master/screenshots/version.png" target="_blank">🔍 View</a></td>
+      <td><a href="https://raw.githubusercontent.com/fruithost/Documentation/refs/heads/main/Images/Binary/version.png" target="_blank">🔍 View</a></td>
     </tr>
     <tr>
       <td><code>fruithost</code></td>
       <td colspan="3"><code>help</code></td>
       <td>Show the Help</td>
-      <td><a href="https://raw.githubusercontent.com/fruithost/Binary/master/screenshots/help.png" target="_blank">🔍 View</a></td>
+      <td><a href="https://raw.githubusercontent.com/fruithost/Documentation/refs/heads/main/Images/Binary/help.png" target="_blank">🔍 View</a></td>
     </tr>
     <tr>
       <td><code>fruithost</code></td>
@@ -94,7 +94,7 @@ All commands will be inserted as `fruithost <command> <arg1> <arg2> <arg...>`.
       <td><code>fruithost</code></td>
       <td colspan="3"><code>daemon</code></td>
       <td>Run the daemon process</td>
-       <td><a href="https://raw.githubusercontent.com/fruithost/Binary/master/screenshots/daemon.png" target="_blank">🔍 View</a></td>
+       <td><a href="https://raw.githubusercontent.com/fruithost/Documentation/refs/heads/main/Images/Binary/daemon.png" target="_blank">🔍 View</a></td>
     </tr>
     <tr>
       <td colspan="5"></td>  
@@ -109,20 +109,20 @@ All commands will be inserted as `fruithost <command> <arg1> <arg2> <arg...>`.
       <td><code>upgrade</code></td>
       <td colspan="2"><code>core</code></td>
       <td>Upgrade the core files</td>
-       <td><a href="https://raw.githubusercontent.com/fruithost/Binary/master/screenshots/core.png" target="_blank">🔍 View</a></td>
+       <td><a href="https://raw.githubusercontent.com/fruithost/Documentation/refs/heads/main/Images/Binary/core.png" target="_blank">🔍 View</a></td>
     </tr>
     <tr>
       <td><code>fruithost</code></td>
       <td><code>upgrade</code></td>
       <td colspan="2"><code>&lt;module&gt;</code></td>
       <td>Upgrade the given module name</td>
-      <td><a href="https://raw.githubusercontent.com/fruithost/Binary/master/screenshots/upgrade.png" target="_blank">🔍 View</a></td>
+      <td><a href="https://raw.githubusercontent.com/fruithost/Documentation/refs/heads/main/Images/Binary/upgrade.png" target="_blank">🔍 View</a></td>
     </tr>
     <tr>
       <td><code>fruithost</code></td>
       <td colspan="3"><code>update</code></td>
       <td>Check for updates</td>
-       <td><a href="https://raw.githubusercontent.com/fruithost/Binary/master/screenshots/update.png" target="_blank">🔍 View</a></td>
+       <td><a href="https://raw.githubusercontent.com/fruithost/Documentation/refs/heads/main/Images/Binary/update.png" target="_blank">🔍 View</a></td>
     </tr>
     <tr>
       <td colspan="5"></td>  
@@ -170,7 +170,7 @@ All commands will be inserted as `fruithost <command> <arg1> <arg2> <arg...>`.
       <td><code>add</code></td>
       <td><code>&lt;url&gt;</code></td>
       <td>Add a repository URL</td>
-       <td><a href="https://raw.githubusercontent.com/fruithost/Binary/master/screenshots/repository_add.png" target="_blank">🔍 View</a></td>
+       <td><a href="https://raw.githubusercontent.com/fruithost/Documentation/refs/heads/main/Images/Binary/repository_add.png" target="_blank">🔍 View</a></td>
     </tr>
     <tr>
       <td><code>fruithost</code></td>
@@ -178,14 +178,14 @@ All commands will be inserted as `fruithost <command> <arg1> <arg2> <arg...>`.
       <td><code>remove</code></td>
       <td><code>&lt;url&gt;</code></td>
       <td>Remove a repository URL</td>
-       <td><a href="https://raw.githubusercontent.com/fruithost/Binary/master/screenshots/repository_remove.png" target="_blank">🔍 View</a></td>
+       <td><a href="https://raw.githubusercontent.com/fruithost/Documentation/refs/heads/main/Images/Binary/repository_remove.png" target="_blank">🔍 View</a></td>
     </tr>
     <tr>
       <td><code>fruithost</code></td>
       <td><code>repository</code></td>
       <td colspan="2"><code>list</code></td>
       <td>List all registred repositorys</td>
-       <td><a href="https://raw.githubusercontent.com/fruithost/Binary/master/screenshots/repository_list.png" target="_blank">🔍 View</a></td>
+       <td><a href="https://raw.githubusercontent.com/fruithost/Documentation/refs/heads/main/Images/Binary/repository_list.png" target="_blank">🔍 View</a></td>
     </tr>
   </tbody>
 </table>
